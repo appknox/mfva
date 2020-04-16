@@ -42,7 +42,7 @@ public class StubProvider extends ContentProvider {
      * insert() always returns null (no URI)
      */
     @Override
-    public String insert(Uri uri, ContentValues values) {
+    public Uri insert(Uri uri, ContentValues values) {
         return null;
     }
     /*
