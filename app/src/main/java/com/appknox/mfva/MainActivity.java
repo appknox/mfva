@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
                     c.doFinal(quote.getBytes());
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
+                } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException |
                         IllegalBlockSizeException | InvalidKeyException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
