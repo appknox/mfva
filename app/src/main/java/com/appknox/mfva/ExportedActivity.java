@@ -10,7 +10,7 @@ import java.security.NoSuchProviderException;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 
-import redis.clients.jedis.Jedis;
+// import redis.clients.jedis.Jedis;
 
 public class ExportedActivity extends AppCompatActivity {
 
