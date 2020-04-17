@@ -22,10 +22,10 @@ public class ExportedActivity extends AppCompatActivity {
         Log.d("redis", "Initialising jedis...");
         Jedis jedis = new Jedis("localhost");
 
-        try {
-            Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-        } catch (NoSuchAlgorithmException|NoSuchProviderException|NoSuchPaddingException e) {
-            // pass
-        }
+        // try {
+        //     Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
+        // } catch (NoSuchAlgorithmException|NoSuchProviderException|NoSuchPaddingException e) {
+        //     // pass
+        // }
     }
 }
