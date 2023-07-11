@@ -3,18 +3,17 @@ package com.appknox.mfva;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -25,8 +24,10 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, WebViewActivity.class);
-		        startActivity(intent);
+                startActivity(intent);
             }
         });
 
@@ -147,9 +148,27 @@ public class MainActivity extends AppCompatActivity {
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
                 } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
+                         IllegalBlockSizeException | InvalidKeyException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+
+        Button buttonSbomJson = (Button) findViewById(R.id.button_sbom_json);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        buttonSbomJson.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    JSONObject jo = new JSONObject(getString(R.string.string_value_foo_number_value_4_bool_value_false));
+                    builder.setMessage(jo.toString()).setTitle(R.string.title_activity_sbom_json);
+                    builder.create().show();
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
         });
     }
