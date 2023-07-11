@@ -5,6 +5,7 @@
     <string name="activity_title_api_requests">API Requests</string>
     <string name="activity_title_webview">WebView</string>
     <string name="title_activity_register">Register</string>
+    <string name="title_activity_sbom_json">SBOM JSON</string>
 
     <string name="action_about">About</string>
 
@@ -20,4 +21,5 @@
     <string name="button_encrypt">Encrypt with DES/ECB</string>
 
     <string name="permission_custom">Custom Permission</string>
+    <string name="string_value_foo_number_value_4_bool_value_false">{\"string_value\": \"foo\", \"number_value\": 4, \"bool_value\": false}</string>
 </resources>

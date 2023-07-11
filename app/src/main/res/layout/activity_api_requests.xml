@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context="com.appknox.mfva.ApiRequestsActivity">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_api_requests"
         android:background="@color/colorPrimary"
         android:layout_width="match_parent"
@@ -34,7 +34,7 @@
             android:background="@android:color/black" />
     </ScrollView>
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/button_start_api_requests"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

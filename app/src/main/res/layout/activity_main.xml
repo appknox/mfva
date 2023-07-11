@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context="com.appknox.mfva.MainActivity">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_main"
         android:background="@color/colorPrimary"
         android:layout_width="match_parent"
@@ -51,4 +51,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/button_encrypt"/>
+
+    <Button
+        android:id="@+id/button_sbom_json"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SBOM JSON"/>
 </LinearLayout>
