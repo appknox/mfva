@@ -26,7 +26,7 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/activity_title_main"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullSensor"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,18 +39,18 @@
             android:label="@string/title_activity_register"
             android:exported="true"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="fullSensor" />
 
         <activity
             android:name=".WebViewActivity"
             android:label="@string/activity_title_webview"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="fullSensor" />
         <activity
             android:name=".ApiRequestsActivity"
             android:label="@string/activity_title_api_requests"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="fullSensor">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
@@ -96,10 +96,6 @@
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission"
             android:syncable="true">
-            <grant-uri-permission
-                android:path="/"
-                android:pathPattern="*"
-                android:pathPrefix="/" />
         </provider>
 
     </application>

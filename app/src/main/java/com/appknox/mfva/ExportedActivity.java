@@ -20,8 +20,9 @@ public class ExportedActivity extends AppCompatActivity {
         setContentView(R.layout.activity_exported);
 
         Log.d("redis", "Initialising jedis...");
-        Jedis jedis = new Jedis("localhost");
-
+        try (Jedis jedis = new Jedis("localhost")) {
+            jedis.sync();  // Suppress unused errors
+        }
         try {
             Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
         } catch (NoSuchAlgorithmException|NoSuchProviderException|NoSuchPaddingException e) {

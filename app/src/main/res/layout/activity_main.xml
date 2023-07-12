@@ -56,5 +56,5 @@
         android:id="@+id/button_sbom_json"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SBOM JSON"/>
+        android:text="@string/title_activity_sbom_json"/>
 </LinearLayout>

@@ -14,10 +14,8 @@ public class ExportedReceiver extends BroadcastReceiver {
     private static final String TAG = "ExportedReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Action: " + intent.getAction() + "\n");
-        sb.append("URI: " + intent.toUri(Intent.URI_INTENT_SCHEME).toString() + "\n");
-        String log = sb.toString();
+        String log = "Action: " + intent.getAction() + "\n" +
+                "URI: " + intent.toUri(Intent.URI_INTENT_SCHEME) + "\n";
         Log.d(TAG, log);
         Toast.makeText(context, log, Toast.LENGTH_LONG).show();
     }

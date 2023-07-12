@@ -16,10 +16,13 @@
     <string name="button_shared_pref">Add &amp; retrieve a shared preference</string>
     <string name="button_webview">Open WebView</string>
     <string name="button_api_requests">API requests</string>
-    <string name="button_start_api_requests">Start API requests</string>
     <string name="button_calculate_checksum">Calculate checksum with MD5</string>
     <string name="button_encrypt">Encrypt with DES/ECB</string>
 
     <string name="permission_custom">Custom Permission</string>
     <string name="string_value_foo_number_value_4_bool_value_false">{\"string_value\": \"foo\", \"number_value\": 4, \"bool_value\": false}</string>
+    <string name="button_desc_start_api_requests">Start API Requests</string>
+    <string name="user_name">User Name</string>
+    <string name="password">Password</string>
+    <string name="submit">Submit</string>
 </resources>
