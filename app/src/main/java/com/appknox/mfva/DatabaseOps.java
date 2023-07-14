@@ -18,7 +18,7 @@ import static com.appknox.mfva.TableData.TableInfo.TABLE_NAME;
 
     public static final int data_version = 4;
 
-    public String CREATE_QUERY = "CREATE TABLE "+
+    public final String CREATE_QUERY = "CREATE TABLE "+
             TABLE_NAME+ "("+ TableInfo.USER_NAME +" TEXT not null, "+TableInfo.USER_PASS+" TEXT not null, "+
             Row_id + " INTEGER PRIMARY KEY AUTOINCREMENT " + ")";
 

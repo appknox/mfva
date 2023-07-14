@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context="com.appknox.mfva.ApiRequestsActivity">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_api_requests"
         android:background="@color/colorPrimary"
         android:layout_width="match_parent"
@@ -34,15 +34,17 @@
             android:background="@android:color/black" />
     </ScrollView>
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/button_start_api_requests"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/scrollview_api_requests"
         android:clickable="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         app:backgroundTint="@color/colorPrimary"
         app:fabSize="normal"
-        app:srcCompat="@android:drawable/ic_media_play"/>
+        app:srcCompat="@android:drawable/ic_media_play"
+        android:contentDescription="@string/button_desc_start_api_requests"
+        android:focusable="true" />
 </RelativeLayout>
