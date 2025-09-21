@@ -40,8 +40,10 @@
         android:layout_height="wrap_content"
         android:layout_above="@id/scrollview_api_requests"
         android:clickable="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
+        android:contentDescription="@string/button_start_api_requests"
+        android:focusable="true"
         app:backgroundTint="@color/colorPrimary"
         app:fabSize="normal"
         app:srcCompat="@android:drawable/ic_media_play"/>

@@ -1,11 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    namespace "com.appknox.mfva"
+    compileSdkVersion 36
     defaultConfig {
         applicationId "com.appknox.mfva"
         minSdkVersion 23
-        targetSdkVersion 26
+        targetSdkVersion 33
         versionCode 8
         versionName "1.1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
