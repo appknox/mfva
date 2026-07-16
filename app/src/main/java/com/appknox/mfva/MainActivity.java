@@ -19,6 +19,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -30,6 +31,9 @@ import javax.crypto.spec.SecretKeySpec;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                         "os.name",
                         "os.version",
                 };
-                String key = keys[(int) (Math.random() * keys.length)];
+                String key = keys[SECURE_RANDOM.nextInt(keys.length)];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -109,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                String quote = quotes[(int) (Math.random() * quotes.length)];
+                String quote = quotes[SECURE_RANDOM.nextInt(quotes.length)];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
