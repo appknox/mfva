@@ -6,25 +6,28 @@ on:
       - master
   workflow_dispatch:
     inputs:
-      riskThreshold:
-        description: "Risk Threshold"
+      healthScore:
+        description: "Minimum health score (0-100) to pass CI"
         required: false
-        default: CRITICAL
-env:
-  RISK_THRESHOLD: CRITICAL
+        default: "50"
+      riskThreshold:
+        description: "Risk Threshold (LOW/MEDIUM/HIGH/CRITICAL) — mutually exclusive with healthScore"
+        required: false
+        default: ""
+      sastTimeout:
+        description: "Static scan timeout in minutes"
+        required: false
+        default: "30"
+      sarif:
+        description: "Enable SARIF report (Enable/Disable)"
+        required: false
+        default: "Disable"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set risk threshold for push
-        if: github.event_name != 'workflow_dispatch'
-        run: |
-          echo "RISK_THRESHOLD=${{ env.RISK_THRESHOLD }}" >> $GITHUB_ENV
-      - name: Set risk threshold for workflow_dispatch
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          echo "RISK_THRESHOLD=${{ github.event.inputs.riskThreshold }}" >> $GITHUB_ENV
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
         with:
@@ -38,8 +41,11 @@ jobs:
           name: mfva.aab
           path: app/build/outputs/bundle/debug/app.aab
       - name: Appknox GitHub action
-        uses: appknox/appknox-github-action@1.0.0
+        uses: appknox/appknox-github-action@healthscore
         with:
           appknox_access_token: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
           file_path: app/build/outputs/bundle/debug/app.aab
-          risk_threshold: ${{ env.RISK_THRESHOLD }}
+          health_score: ${{ github.event.inputs.healthScore }}
+          # risk_threshold: ${{ github.event.inputs.riskThreshold }}
+          sast_timeout: ${{ github.event.inputs.sastTimeout }}
+          sarif: ${{ github.event.inputs.sarif }}
