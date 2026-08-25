@@ -11,3 +11,5 @@ mfva has been designed as a demo app for the Appknox automated scanners. If it i
 ---
 
 License: GPLv3
+
+<!-- autofix scope test: docs-only change -->
