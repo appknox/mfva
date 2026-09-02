@@ -109,7 +109,8 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                String quote = quotes[(int) (Math.random() * quotes.length)];
+                java.security.SecureRandom secureRandomQuotes = new java.security.SecureRandom();
+                String quote = quotes[secureRandomQuotes.nextInt(quotes.length)];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
