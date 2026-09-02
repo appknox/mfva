@@ -109,7 +109,8 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                String quote = quotes[(int) (Math.random() * quotes.length)];
+                java.security.SecureRandom secureRandomQuotes = new java.security.SecureRandom();
+                String quote = quotes[secureRandomQuotes.nextInt(quotes.length)];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
@@ -140,21 +141,14 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    javax.crypto.KeyGenerator keyGen = javax.crypto.KeyGenerator.getInstance("AES");
-                    keyGen.init(256, new java.security.SecureRandom());
-                    SecretKey secureKey = keyGen.generateKey();
-
-                    byte[] iv = new byte[12];
-                    new java.security.SecureRandom().nextBytes(iv);
-
-                    Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-                    javax.crypto.spec.GCMParameterSpec gcmSpec = new javax.crypto.spec.GCMParameterSpec(128, iv);
-                    c.init(Cipher.ENCRYPT_MODE, secureKey, gcmSpec);
+                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
+                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
+                    c.init(Cipher.ENCRYPT_MODE, keyspec);
                     c.doFinal(quote.getBytes());
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
+                        IllegalBlockSizeException | InvalidKeyException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
             }
