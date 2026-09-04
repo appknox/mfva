@@ -136,29 +136,14 @@ jobs:
           appknox cicheck "${{ steps.upload.outputs.file_id }}" \
             --risk-threshold critical --host "$APPKNOX_API_HOST" || true
 
-      - name: Wait for the KnoxIQ analysis
-        env:
-          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
-        run: |
-          # 4 = COMPLETED, 5 = ERRORED (mycroft KnoxIQScanStatus).
-          url="${APPKNOX_API_HOST}api/knoxiq/file/${{ steps.upload.outputs.file_id }}/knoxiq_scan/status"
-          timeout_minutes="${{ inputs.knoxiqTimeoutMinutes || env.KNOXIQ_TIMEOUT_MINUTES }}"
-          deadline=$(( $(date +%s) + timeout_minutes * 60 ))
-          while :; do
-            status=$(curl -sf -H "Authorization: Token $APPKNOX_ACCESS_TOKEN" "$url" \
-              | python3 -c "import sys,json;print(json.load(sys.stdin).get('sast_status'))")
-            echo "knoxiq sast_status=$status"
-            case "$status" in
-              4) echo "KnoxIQ analysis complete"; break ;;
-              5) echo "::error::KnoxIQ analysis errored"; exit 1 ;;
-            esac
-            if [ "$(date +%s)" -ge "$deadline" ]; then
-              echo "::error::KnoxIQ did not finish within ${timeout_minutes}m"
-              exit 1
-            fi
-            sleep 30
-          done
-
+      # Verification runs HERE, before the KnoxIQ wait, and the order matters.
+      #
+      # KnoxIQ's job is to produce the remediation autofix consumes. It has no
+      # part in deciding whether a finding cleared -- that is the static scan,
+      # which has already finished by this point. Sequencing the comparison
+      # after KnoxIQ made the answer wait 15-150 minutes on a service it does
+      # not depend on, and a cancelled or timed-out KnoxIQ run destroyed the
+      # verification result along with it.
       - name: Did the fixes hold?
         env:
           APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
@@ -207,6 +192,33 @@ jobs:
           if introduced:
               print("::warning::the fix introduced new findings")
           PY
+
+      # Only autofix needs this: KnoxIQ writes the per-finding remediation and
+      # validation the fixer reads, and there is nothing to read until it lands.
+      # Verification above has already reported by now, so a KnoxIQ timeout
+      # costs us the fixes, not the answer to "did the last ones work".
+      - name: Wait for the KnoxIQ analysis
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
+        run: |
+          # 4 = COMPLETED, 5 = ERRORED (mycroft KnoxIQScanStatus).
+          url="${APPKNOX_API_HOST}api/knoxiq/file/${{ steps.upload.outputs.file_id }}/knoxiq_scan/status"
+          timeout_minutes="${{ inputs.knoxiqTimeoutMinutes || env.KNOXIQ_TIMEOUT_MINUTES }}"
+          deadline=$(( $(date +%s) + timeout_minutes * 60 ))
+          while :; do
+            status=$(curl -sf -H "Authorization: Token $APPKNOX_ACCESS_TOKEN" "$url" \
+              | python3 -c "import sys,json;print(json.load(sys.stdin).get('sast_status'))")
+            echo "knoxiq sast_status=$status"
+            case "$status" in
+              4) echo "KnoxIQ analysis complete"; break ;;
+              5) echo "::error::KnoxIQ analysis errored"; exit 1 ;;
+            esac
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::error::KnoxIQ did not finish within ${timeout_minutes}m"
+              exit 1
+            fi
+            sleep 30
+          done
 
       - name: Autofix every finding
         env:
