@@ -44,6 +44,10 @@ on:
         description: "Minutes to wait for KnoxIQ (regular files 15-20, exceptional up to 120)"
         required: false
         default: "150"
+      listAnalysesOnly:
+        description: "List every analysis and why it is or is not a fix target, then stop"
+        required: false
+        default: "false"
 
 env:
   # Minutes to wait for KnoxIQ. The static scan finishes first; KnoxIQ then
@@ -126,7 +130,32 @@ jobs:
           echo "file_id=${file_id}" >> "$GITHUB_OUTPUT"
           echo "Uploaded as file ${file_id}"
 
+      # Why a finding is not fixed matters as much as whether it was.
+      #
+      # On file 348 the scan reported 24 risky findings and autofix considered
+      # 3. That gap is not severity -- the threshold is "low", so nothing is
+      # dropped for being minor. It is locatability: an analysis is only a fix
+      # target if its finding text names a first-party class descriptor, and
+      # manifest, config and framework-only findings name none.
+      #
+      # This step prints the whole set with each analysis's derived class
+      # hints, so the funnel is visible rather than inferred:
+      #   +  single first-party class -- locatable
+      #   *  several classes          -- locatable, multi-file
+      #   (blank) no class            -- skipped before KnoxIQ is asked
+      - name: What is and is not a fix target
+        if: inputs.listAnalysesOnly == 'true'
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
+        run: |
+          appknox autofix --list-analyses \
+            --file-id "${{ steps.upload.outputs.file_id }}" \
+            --host "$APPKNOX_API_HOST"
+          echo "::notice::listAnalysesOnly - stopping before the scan wait"
+          exit 0
+
       - name: Wait for the static scan
+        if: inputs.listAnalysesOnly != 'true'
         env:
           APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
         run: |
@@ -145,6 +174,7 @@ jobs:
       # not depend on, and a cancelled or timed-out KnoxIQ run destroyed the
       # verification result along with it.
       - name: Did the fixes hold?
+        if: inputs.listAnalysesOnly != 'true'
         env:
           APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
         run: |
@@ -198,6 +228,7 @@ jobs:
       # Verification above has already reported by now, so a KnoxIQ timeout
       # costs us the fixes, not the answer to "did the last ones work".
       - name: Wait for the KnoxIQ analysis
+        if: inputs.listAnalysesOnly != 'true'
         env:
           APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
         run: |
@@ -221,6 +252,7 @@ jobs:
           done
 
       - name: Autofix every finding
+        if: inputs.listAnalysesOnly != 'true'
         env:
           APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
