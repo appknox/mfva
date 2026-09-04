@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -26,8 +27,13 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import android.util.Base64;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -143,14 +149,14 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    byte[] salt = SecureCryptoManager.generateSecureRandom(16);
+                    SecretKey secureKey = SecureCryptoManager.deriveKeyFromPassword("Gangnam!".toCharArray(), salt);
+                    SecureCryptoManager.EncryptionResult encryptionResult =
+                            SecureCryptoManager.encryptData(quote.getBytes(StandardCharsets.UTF_8), secureKey);
+                    String encryptedText = Base64.encodeToString(encryptionResult.getCiphertext(), Base64.DEFAULT);
 
-                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
+                    Snackbar.make(v, "Encrypted: " + encryptedText, Snackbar.LENGTH_SHORT).show();
+                } catch (Exception e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
             }
@@ -174,6 +180,47 @@ public class MainActivity extends AppCompatActivity {
 
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    static class SecureCryptoManager {
+        static byte[] generateSecureRandom(int length) {
+            byte[] bytes = new byte[length];
+            new SecureRandom().nextBytes(bytes);
+            return bytes;
+        }
+
+        static SecretKey deriveKeyFromPassword(char[] password, byte[] salt) throws Exception {
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            PBEKeySpec spec = new PBEKeySpec(password, salt, 10000, 256);
+            byte[] keyBytes = factory.generateSecret(spec).getEncoded();
+            return new SecretKeySpec(keyBytes, "AES");
+        }
+
+        static EncryptionResult encryptData(byte[] data, SecretKey key) throws Exception {
+            byte[] iv = generateSecureRandom(12);
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));
+            byte[] ciphertext = cipher.doFinal(data);
+            return new EncryptionResult(ciphertext, iv);
+        }
+
+        static class EncryptionResult {
+            private final byte[] ciphertext;
+            private final byte[] iv;
+
+            EncryptionResult(byte[] ciphertext, byte[] iv) {
+                this.ciphertext = ciphertext;
+                this.iv = iv;
+            }
+
+            byte[] getCiphertext() {
+                return ciphertext;
+            }
+
+            byte[] getIv() {
+                return iv;
+            }
         }
     }
 }
