@@ -1,0 +1,226 @@
+# End-to-end autofix: build the app, scan it, fix a finding, and prove the fix.
+#
+# The repository never leaves this runner. Only two things cross the wire: API
+# reads from Appknox, and model turns through Sherrinford, which holds the
+# provider key. No source is uploaded anywhere.
+name: Autofix E2E
+
+# Also runs on push to this branch: workflow_dispatch only registers once the
+# file reaches the default branch, and we want to exercise this before merging.
+#
+# This branch carries the workflow and NOTHING ELSE -- app/ is byte-identical to
+# master. That is the point: the predecessor branch accumulated the fix commits
+# its own runs produced, so every later run scanned an app whose findings were
+# already partly fixed (MainActivity kept one of its two Math.random() sites;
+# ExportedActivity's crypto call had been rewritten, and rewritten wrongly --
+# it stopped compiling). A test that consumes its own findings measures nothing.
+# Never commit app source to this branch; leave the autofix PRs unmerged.
+on:
+  push:
+    branches: [ci/autofix-e2e]
+  workflow_dispatch:
+    inputs:
+      analysisId:
+        description: "Appknox analysis id to fix (blank = list them and stop)"
+        required: false
+        default: ""
+      fileId:
+        description: "Existing Appknox file id (blank = build and upload a fresh one)"
+        required: false
+        default: ""
+      dryRun:
+        description: "Locate and fix but do not open a PR"
+        required: false
+        default: "false"
+      allowUnverified:
+        description: "Deliver fixes KnoxIQ gave us no way to check (PR is stamped NOT VERIFIED)"
+        required: false
+        default: "true"
+      baselineFileId:
+        description: "Earlier scan to compare against, to see whether fixed findings came back"
+        required: false
+        default: "344"
+      knoxiqTimeoutMinutes:
+        description: "Minutes to wait for KnoxIQ (regular files 15-20, exceptional up to 120)"
+        required: false
+        default: "150"
+
+env:
+  # Minutes to wait for KnoxIQ. The static scan finishes first; KnoxIQ then
+  # validates and writes remediation per finding, and autofix has nothing to
+  # read until it does.
+  #
+  # Per the KnoxIQ team: 15-20 minutes for a regular file, up to ~2 hours for an
+  # exceptional one. The default leaves headroom above the worst case, because
+  # timing out just short of the answer wastes the whole run.
+  #
+  # NOTE this blocks a runner for the duration. Fine for a POC; for production
+  # the shape should be two jobs -- build and upload, then a separate run
+  # triggered by the KnoxIQ webhook -- so nobody pays for an idle runner.
+  KNOXIQ_TIMEOUT_MINUTES: "150"
+  # The scan this build is compared against. 344 is the last scan of the
+  # unfixed code, so anything still present here survived the fix.
+  DEFAULT_BASELINE_FILE_ID: "344"
+  APPKNOX_API_HOST: https://sherlock-knoxiq-uat.staging.appknox.io/
+  SHERRINFORD_URL: https://sherrinford-uat.staging.appknox.io
+  AUTOFIX_CLI_REF: feat/autofix-v2
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    # Must exceed the KnoxIQ wait, or the job is killed before the answer lands.
+    timeout-minutes: 180
+    permissions:
+      # Mints the OIDC id-token Sherrinford exchanges for a session. Without it
+      # there is no credential for the gateway at all.
+      id-token: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve inputs
+        id: cfg
+        run: |
+          echo "file_id=${{ inputs.fileId }}" >> "$GITHUB_OUTPUT"
+          echo "analysis_id=${{ inputs.analysisId }}" >> "$GITHUB_OUTPUT"
+          echo "dry_run=${{ inputs.dryRun || 'false' }}" >> "$GITHUB_OUTPUT"
+          echo "allow_unverified=${{ inputs.allowUnverified || 'true' }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build the appknox CLI
+        run: |
+          git clone --depth 1 --branch "$AUTOFIX_CLI_REF" \
+            https://github.com/appknox/appknox-go.git /tmp/appknox-go
+          cd /tmp/appknox-go && go build -o /usr/local/bin/appknox .
+          appknox --help >/dev/null && echo "CLI built"
+
+      - name: Set up JDK 1.8
+        if: steps.cfg.outputs.file_id == ''
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+
+      - name: Build the app
+        if: steps.cfg.outputs.file_id == ''
+        run: |
+          chmod +x gradlew
+          ./gradlew bundle
+
+      - name: Upload to Appknox
+        id: upload
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
+        run: |
+          if [ -n "${{ steps.cfg.outputs.file_id }}" ]; then
+            echo "file_id=${{ steps.cfg.outputs.file_id }}" >> "$GITHUB_OUTPUT"
+            echo "Reusing file ${{ steps.cfg.outputs.file_id }}"
+            exit 0
+          fi
+          # upload prints the file id as its only stdout output
+          file_id=$(appknox upload app/build/outputs/bundle/debug/app.aab --host "$APPKNOX_API_HOST")
+          echo "file_id=${file_id}" >> "$GITHUB_OUTPUT"
+          echo "Uploaded as file ${file_id}"
+
+      - name: Wait for the static scan
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
+        run: |
+          # cicheck blocks until the static scan finishes, then exits non-zero if
+          # anything breaches the threshold. Here we only want the wait -- the
+          # findings are the input to autofix, not a reason to stop.
+          appknox cicheck "${{ steps.upload.outputs.file_id }}" \
+            --risk-threshold critical --host "$APPKNOX_API_HOST" || true
+
+      - name: Wait for the KnoxIQ analysis
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
+        run: |
+          # 4 = COMPLETED, 5 = ERRORED (mycroft KnoxIQScanStatus).
+          url="${APPKNOX_API_HOST}api/knoxiq/file/${{ steps.upload.outputs.file_id }}/knoxiq_scan/status"
+          timeout_minutes="${{ inputs.knoxiqTimeoutMinutes || env.KNOXIQ_TIMEOUT_MINUTES }}"
+          deadline=$(( $(date +%s) + timeout_minutes * 60 ))
+          while :; do
+            status=$(curl -sf -H "Authorization: Token $APPKNOX_ACCESS_TOKEN" "$url" \
+              | python3 -c "import sys,json;print(json.load(sys.stdin).get('sast_status'))")
+            echo "knoxiq sast_status=$status"
+            case "$status" in
+              4) echo "KnoxIQ analysis complete"; break ;;
+              5) echo "::error::KnoxIQ analysis errored"; exit 1 ;;
+            esac
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::error::KnoxIQ did not finish within ${timeout_minutes}m"
+              exit 1
+            fi
+            sleep 30
+          done
+
+      - name: Did the fixes hold?
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
+        run: |
+          # The real oracle. A patch that looks right in a diff means nothing if
+          # Appknox still reports the vulnerability in the rebuilt artifact.
+          baseline="${{ inputs.baselineFileId || env.DEFAULT_BASELINE_FILE_ID }}"
+          current="${{ steps.upload.outputs.file_id }}"
+          echo "comparing file $current against baseline $baseline"
+
+          fetch() {
+            curl -sf -H "Authorization: Token $APPKNOX_ACCESS_TOKEN" \
+              "${APPKNOX_API_HOST}api/v2/files/$1/analyses?limit=200"
+          }
+          fetch "$baseline" > /tmp/baseline.json
+          fetch "$current"  > /tmp/current.json
+
+          python3 - <<'PY'
+          import json
+
+          def risky(path):
+              """vulnerability id -> risk, for anything above Passed."""
+              data = json.load(open(path))
+              return {
+                  a["vulnerability"]: a.get("computed_risk", 0)
+                  for a in data.get("results", [])
+                  if a.get("computed_risk", 0) > 0
+              }
+
+          before, after = risky("/tmp/baseline.json"), risky("/tmp/current.json")
+          fixed = sorted(set(before) - set(after))
+          remaining = sorted(set(before) & set(after))
+          introduced = sorted(set(after) - set(before))
+
+          print(f"baseline risky vulns : {len(before)}")
+          print(f"current  risky vulns : {len(after)}")
+          print(f"CLEARED              : {fixed}")
+          print(f"STILL PRESENT        : {remaining}")
+          print(f"NEWLY INTRODUCED     : {introduced}")
+
+          # 16 = Derived Crypto Keys, 127 = Weak PRNG -- the two autofix touched.
+          for vid, name in ((16, "Derived Crypto Keys"), (127, "Weak PRNG")):
+              if vid in before:
+                  state = "STILL PRESENT" if vid in after else "CLEARED"
+                  print(f"  vuln {vid} ({name}): {state}")
+          if introduced:
+              print("::warning::the fix introduced new findings")
+          PY
+
+      - name: Autofix every finding
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_UAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # No --fix-token: in CI the credential is minted from this run's OIDC
+          # identity and expires with the job.
+          appknox autofix \
+            --repo-path . \
+            --repo "${{ github.repository }}" \
+            --file-id "${{ steps.upload.outputs.file_id }}" \
+            ${{ steps.cfg.outputs.analysis_id != '' && format('--analysis-id {0}', steps.cfg.outputs.analysis_id) || '' }} \
+            --host "$APPKNOX_API_HOST" \
+            --fix-url "$SHERRINFORD_URL" \
+            ${{ steps.cfg.outputs.allow_unverified == 'true' && '--allow-unverified' || '' }} \
+            ${{ steps.cfg.outputs.dry_run == 'true' && '--dry-run' || '--push-branch' }}
