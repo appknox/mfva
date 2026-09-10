@@ -102,8 +102,8 @@ jobs:
     # build. On a dispatch the input wins, including the literal string "false",
     # which is truthy here and therefore not overridden.
     env:
-      BUILD_ONLY: ${{ inputs.buildOnly || 'true' }}
-      LIST_ONLY: ${{ inputs.listAnalysesOnly || 'false' }}
+      BUILD_ONLY: ${{ inputs.buildOnly || 'false' }}
+      LIST_ONLY: ${{ inputs.listAnalysesOnly || 'true' }}
       LADDER: ${{ inputs.toolchainLadder || 'true' }}
       JAVA_V: ${{ inputs.javaVersion || '8' }}
       APP_DIR: ${{ inputs.appDir }}
