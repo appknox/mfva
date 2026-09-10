@@ -23,8 +23,8 @@ public class ExportedActivity extends AppCompatActivity {
         Jedis jedis = new Jedis("localhost");
 
         try {
-            Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-        } catch (NoSuchAlgorithmException|NoSuchProviderException|NoSuchPaddingException e) {
+            Cipher.getInstance("AES/GCM/NoPadding");
+        } catch (NoSuchAlgorithmException|NoSuchPaddingException e) {
             // pass
         }
     }

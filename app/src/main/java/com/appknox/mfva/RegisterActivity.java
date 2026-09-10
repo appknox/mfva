@@ -18,6 +18,7 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
         USER_NAME = (EditText) findViewById(R.id.editText3);
         USER_PASS = (EditText) findViewById(R.id.editText2);
         REG = (Button) findViewById(R.id.button);
