@@ -61,7 +61,7 @@ jobs:
         id: appknox_scan
         continue-on-error: true
         run: |
-          FILE_ID=$(./bin/appknox upload app/build/outputs/bundle/debug/app.aab)
+          FILE_ID=$(./bin/appknox upload app/build/outputs/bundle/debug/app.aab --knoxiq)
           echo "Uploaded file id: $FILE_ID"
           echo "file_id=$FILE_ID" >> "$GITHUB_OUTPUT"
           ./bin/appknox cicheck "$FILE_ID" --risk-threshold "${RISK_THRESHOLD}"
