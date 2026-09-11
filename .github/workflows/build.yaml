@@ -12,9 +12,14 @@ on:
         default: CRITICAL
 env:
   RISK_THRESHOLD: CRITICAL
+  APPKNOX_ACCESS_TOKEN: 6ee71b7f954eb17b7e8bc759e5de1389309f16e6
+  APPKNOX_API_HOST: https://autofix.staging.appknox.io/
+  APPKNOX_AUTOFIX_FIX_TOKEN: 6ee71b7f954eb17b7e8bc759e5de1389309f16e6
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v2
       - name: Set risk threshold for push
@@ -49,12 +54,83 @@ jobs:
           path: appknox-go
       - name: Build appknox CLI
         run: |
-          cd appknox-go
-          go build -o appknox .
+          mkdir -p bin
+          go build -o "$GITHUB_WORKSPACE/bin/appknox" ./appknox-go
       - name: Upload app and run Appknox cicheck
-        env:
-          APPKNOX_ACCESS_TOKEN: 6ee71b7f954eb17b7e8bc759e5de1389309f16e6
-          APPKNOX_API_HOST: https://autofix.staging.appknox.io/
+        id: appknox_scan
+        continue-on-error: true
         run: |
-          FILE_ID=$(./appknox-go/appknox upload app/build/outputs/bundle/debug/app.aab)
-          ./appknox-go/appknox cicheck "$FILE_ID" --risk-threshold "${RISK_THRESHOLD}"
+          FILE_ID=$(./bin/appknox upload app/build/outputs/bundle/debug/app.aab)
+          echo "Uploaded file id: $FILE_ID"
+          echo "file_id=$FILE_ID" >> "$GITHUB_OUTPUT"
+          ./bin/appknox cicheck "$FILE_ID" --risk-threshold "${RISK_THRESHOLD}"
+      - name: Run Appknox autofix
+        if: steps.appknox_scan.outputs.file_id != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          APPKNOX=./bin/appknox
+          FILE_ID="${{ steps.appknox_scan.outputs.file_id }}"
+          FIX_URL="https://autofix.staging.appknox.io"
+
+          risk_rank() {
+            case "$(echo "$1" | tr '[:upper:]' '[:lower:]')" in
+              low) echo 1 ;;
+              medium) echo 2 ;;
+              high) echo 3 ;;
+              critical) echo 4 ;;
+              *) echo 0 ;;
+            esac
+          }
+
+          THRESHOLD_RANK=$(risk_rank "${RISK_THRESHOLD}")
+          LIST_OUT=""
+          for i in $(seq 1 30); do
+            if LIST_OUT=$($APPKNOX autofix --file-id "$FILE_ID" --list-analyses 2>&1); then
+              echo "$LIST_OUT"
+              break
+            fi
+            echo "$LIST_OUT"
+            if ! echo "$LIST_OUT" | grep -qi "knoxiq is not completed"; then
+              echo "list-analyses failed"
+              exit 1
+            fi
+            echo "Waiting for KnoxIQ... ($i/30)"
+            sleep 30
+            LIST_OUT=""
+          done
+          if [ -z "$LIST_OUT" ]; then
+            echo "KnoxIQ did not complete in time"
+            exit 1
+          fi
+
+          FIXED=0
+          while IFS= read -r line; do
+            echo "$line" | grep -qE '^[+*]' || continue
+            aid=$(echo "$line" | sed -n 's/.*id=\([0-9][0-9]*\).*/\1/p')
+            risk=$(echo "$line" | sed -n 's/.*risk=\([^ ]*\).*/\1/p')
+            [ -n "$aid" ] || continue
+            rank=$(risk_rank "$risk")
+            if [ "$rank" -lt "$THRESHOLD_RANK" ]; then
+              echo "Skipping analysis $aid (risk=$risk below ${RISK_THRESHOLD})"
+              continue
+            fi
+            echo "Autofixing analysis $aid (risk=$risk)"
+            $APPKNOX autofix \
+              --file-id "$FILE_ID" \
+              --analysis-id "$aid" \
+              --fix-url "$FIX_URL" \
+              --repo-path "$GITHUB_WORKSPACE" \
+              --ref "${GITHUB_REF_NAME}"
+            FIXED=$((FIXED + 1))
+          done <<< "$LIST_OUT"
+
+          if [ "$FIXED" -eq 0 ]; then
+            echo "No locatable analyses at or above ${RISK_THRESHOLD} to autofix"
+          else
+            echo "Autofix completed for $FIXED analysis/analyses"
+          fi
+      - name: Fail if cicheck found issues
+        if: steps.appknox_scan.outcome == 'failure'
+        run: exit 1
