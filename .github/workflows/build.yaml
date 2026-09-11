@@ -37,9 +37,24 @@ jobs:
         with:
           name: mfva.aab
           path: app/build/outputs/bundle/debug/app.aab
-      - name: Appknox GitHub action
-        uses: appknox/appknox-github-action@1.0.0
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          appknox_access_token: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
-          file_path: app/build/outputs/bundle/debug/app.aab
-          risk_threshold: ${{ env.RISK_THRESHOLD }}
+          go-version: "1.24"
+      - name: Checkout appknox-go
+        uses: actions/checkout@v4
+        with:
+          repository: appknox/appknox-go
+          ref: feat/autofix-cli
+          path: appknox-go
+      - name: Build appknox CLI
+        run: |
+          cd appknox-go
+          go build -o appknox .
+      - name: Upload app and run Appknox cicheck
+        env:
+          APPKNOX_ACCESS_TOKEN: 6ee71b7f954eb17b7e8bc759e5de1389309f16e6
+          APPKNOX_API_HOST: https://autofix.staging.appknox.io/
+        run: |
+          FILE_ID=$(./appknox-go/appknox upload app/build/outputs/bundle/debug/app.aab)
+          ./appknox-go/appknox cicheck "$FILE_ID" --risk-threshold "${RISK_THRESHOLD}"
