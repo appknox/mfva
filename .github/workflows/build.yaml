@@ -53,9 +53,10 @@ jobs:
           ref: feat/autofix-cli
           path: appknox-go
       - name: Build appknox CLI
+        working-directory: appknox-go
         run: |
-          mkdir -p bin
-          go build -o "$GITHUB_WORKSPACE/bin/appknox" ./appknox-go
+          mkdir -p "$GITHUB_WORKSPACE/bin"
+          go build -o "$GITHUB_WORKSPACE/bin/appknox" .
       - name: Upload app and run Appknox cicheck
         id: appknox_scan
         continue-on-error: true
