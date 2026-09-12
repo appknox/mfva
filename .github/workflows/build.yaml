@@ -73,7 +73,6 @@ jobs:
           set -euo pipefail
           APPKNOX=./bin/appknox
           FILE_ID="${{ steps.appknox_scan.outputs.file_id }}"
-          FIX_URL="https://autofix.staging.appknox.io"
 
           risk_rank() {
             case "$(echo "$1" | tr '[:upper:]' '[:lower:]')" in
@@ -121,7 +120,6 @@ jobs:
             $APPKNOX autofix \
               --file-id "$FILE_ID" \
               --analysis-id "$aid" \
-              --fix-url "$FIX_URL" \
               --repo-path "$GITHUB_WORKSPACE" \
               --ref "${GITHUB_REF_NAME}"
             FIXED=$((FIXED + 1))
