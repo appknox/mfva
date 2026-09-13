@@ -19,7 +19,6 @@ env:
   RISK_THRESHOLD: CRITICAL
   APPKNOX_ACCESS_TOKEN: 6ee71b7f954eb17b7e8bc759e5de1389309f16e6
   APPKNOX_API_HOST: https://autofix.staging.appknox.io/
-  APPKNOX_AUTOFIX_FIX_TOKEN: 6ee71b7f954eb17b7e8bc759e5de1389309f16e6
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -70,6 +69,8 @@ jobs:
           ./bin/appknox cicheck "$FILE_ID" --risk-threshold "${RISK_THRESHOLD}"
       - name: Run Appknox autofix
         if: steps.appknox_scan.outputs.file_id != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           APPKNOX=./bin/appknox
