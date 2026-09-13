@@ -76,17 +76,6 @@ jobs:
           APPKNOX=./bin/appknox
           FILE_ID="${{ steps.appknox_scan.outputs.file_id }}"
 
-          risk_rank() {
-            case "$(echo "$1" | tr '[:upper:]' '[:lower:]')" in
-              low) echo 1 ;;
-              medium) echo 2 ;;
-              high) echo 3 ;;
-              critical) echo 4 ;;
-              *) echo 0 ;;
-            esac
-          }
-
-          THRESHOLD_RANK=$(risk_rank "${RISK_THRESHOLD}")
           LIST_OUT=""
           for i in $(seq 1 30); do
             if LIST_OUT=$($APPKNOX autofix --file-id "$FILE_ID" --list-analyses 2>&1); then
@@ -107,31 +96,7 @@ jobs:
             exit 1
           fi
 
-          FIXED=0
-          while IFS= read -r line; do
-            echo "$line" | grep -qE '^[+*]' || continue
-            aid=$(echo "$line" | sed -n 's/.*id=\([0-9][0-9]*\).*/\1/p')
-            risk=$(echo "$line" | sed -n 's/.*risk=\([^ ]*\).*/\1/p')
-            [ -n "$aid" ] || continue
-            rank=$(risk_rank "$risk")
-            if [ "$rank" -lt "$THRESHOLD_RANK" ]; then
-              echo "Skipping analysis $aid (risk=$risk below ${RISK_THRESHOLD})"
-              continue
-            fi
-            echo "Autofixing analysis $aid (risk=$risk)"
-            $APPKNOX autofix \
-              --file-id "$FILE_ID" \
-              --analysis-id "$aid" \
-              --repo-path "$GITHUB_WORKSPACE" \
-              --ref "${GITHUB_REF_NAME}"
-            FIXED=$((FIXED + 1))
-          done <<< "$LIST_OUT"
-
-          if [ "$FIXED" -eq 0 ]; then
-            echo "No locatable analyses at or above ${RISK_THRESHOLD} to autofix"
-          else
-            echo "Autofix completed for $FIXED analysis/analyses"
-          fi
+          $APPKNOX autofix --file-id "$FILE_ID"
       - name: Fail if cicheck found issues
         if: steps.appknox_scan.outcome == 'failure'
         run: exit 1
