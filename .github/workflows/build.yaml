@@ -10,6 +10,11 @@ on:
         description: "Risk Threshold"
         required: false
         default: CRITICAL
+
+permissions:
+  contents: write
+  pull-requests: write
+
 env:
   RISK_THRESHOLD: CRITICAL
   APPKNOX_ACCESS_TOKEN: 6ee71b7f954eb17b7e8bc759e5de1389309f16e6
@@ -18,9 +23,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - uses: actions/checkout@v2
       - name: Set risk threshold for push
@@ -68,8 +70,6 @@ jobs:
           ./bin/appknox cicheck "$FILE_ID" --risk-threshold "${RISK_THRESHOLD}"
       - name: Run Appknox autofix
         if: steps.appknox_scan.outputs.file_id != ''
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           APPKNOX=./bin/appknox
