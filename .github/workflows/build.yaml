@@ -17,7 +17,7 @@ permissions:
 
 env:
   RISK_THRESHOLD: CRITICAL
-  APPKNOX_ACCESS_TOKEN: 6ee71b7f954eb17b7e8bc759e5de1389309f16e6
+  APPKNOX_ACCESS_TOKEN: 22fcef1ca72bf19b2d9b9ba3a04d2a84f6055fcd
   APPKNOX_API_HOST: https://autofix.staging.appknox.io/
 jobs:
   build:
@@ -75,27 +75,6 @@ jobs:
           set -euo pipefail
           APPKNOX=./bin/appknox
           FILE_ID="${{ steps.appknox_scan.outputs.file_id }}"
-
-          LIST_OUT=""
-          for i in $(seq 1 30); do
-            if LIST_OUT=$($APPKNOX autofix --file-id "$FILE_ID" --list-analyses 2>&1); then
-              echo "$LIST_OUT"
-              break
-            fi
-            echo "$LIST_OUT"
-            if ! echo "$LIST_OUT" | grep -qi "knoxiq is not completed"; then
-              echo "list-analyses failed"
-              exit 1
-            fi
-            echo "Waiting for KnoxIQ... ($i/30)"
-            sleep 30
-            LIST_OUT=""
-          done
-          if [ -z "$LIST_OUT" ]; then
-            echo "KnoxIQ did not complete in time"
-            exit 1
-          fi
-
           $APPKNOX autofix --file-id "$FILE_ID"
       - name: Fail if cicheck found issues
         if: steps.appknox_scan.outcome == 'failure'
