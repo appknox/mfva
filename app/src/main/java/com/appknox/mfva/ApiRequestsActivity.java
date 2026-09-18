@@ -13,7 +13,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.UUID;
-import java.util.Random;
+import java.security.SecureRandom;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
