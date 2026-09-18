@@ -140,14 +140,10 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    javax.crypto.KeyGenerator keyGenerator = javax.crypto.KeyGenerator.getInstance("AES");
-                    keyGenerator.init(256, new java.security.SecureRandom());
-                    SecretKey keyspec = keyGenerator.generateKey();
-
-                    byte[] ivBytes = new byte[16];
-                    new java.security.SecureRandom().nextBytes(ivBytes);
-                    IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-
+                    SecretKey keyspec = new SecretKeySpec("GangnamStyle!123".getBytes(), "AES");
+                    byte[] iv = new byte[16];
+                    new java.security.SecureRandom().nextBytes(iv);
+                    IvParameterSpec ivSpec = new IvParameterSpec(iv);
                     Cipher c = Cipher.getInstance("AES/CBC/PKCS7Padding", "BC");
                     c.init(Cipher.ENCRYPT_MODE, keyspec, ivSpec);
                     c.doFinal(quote.getBytes());
