@@ -140,14 +140,15 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
+                    SecretKey keyspec = new SecretKeySpec("Gangnam!Gangnam!".getBytes(), "AES");
+                    Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                    IvParameterSpec ivspec = new IvParameterSpec("1234567890123456".getBytes());
+                    c.init(Cipher.ENCRYPT_MODE, keyspec, ivspec);
                     c.doFinal(quote.getBytes());
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
+                } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException |
+                        IllegalBlockSizeException | InvalidKeyException | InvalidAlgorithmParameterException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
             }
