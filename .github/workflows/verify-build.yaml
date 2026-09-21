@@ -6,7 +6,12 @@
 # alter the scan it is verifying.
 name: Verify build
 
+# Push-triggered: workflow_dispatch needs the workflow on the default branch,
+# and this one deliberately lives only on verify branches.
 on:
+  push:
+    branches:
+      - "verify/**"
   workflow_dispatch:
 
 jobs:
