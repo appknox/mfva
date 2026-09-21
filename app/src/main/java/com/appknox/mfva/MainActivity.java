@@ -141,16 +141,16 @@ public class MainActivity extends AppCompatActivity {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
                     java.security.SecureRandom secureRandom = new java.security.SecureRandom();
-                    byte[] keyBytes = new byte[32];
-                    secureRandom.nextBytes(keyBytes);
-                    SecretKey keyspec = new SecretKeySpec(keyBytes, "AES");
+                    javax.crypto.KeyGenerator keyGenerator = javax.crypto.KeyGenerator.getInstance("AES");
+                    keyGenerator.init(256, secureRandom);
+                    SecretKey keyspec = keyGenerator.generateKey();
 
-                    byte[] ivBytes = new byte[16];
-                    secureRandom.nextBytes(ivBytes);
-                    IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+                    byte[] iv = new byte[16];
+                    secureRandom.nextBytes(iv);
+                    IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
                     Cipher c = Cipher.getInstance("AES/CBC/PKCS7Padding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec, ivSpec);
+                    c.init(Cipher.ENCRYPT_MODE, keyspec, ivParameterSpec);
                     c.doFinal(quote.getBytes());
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
