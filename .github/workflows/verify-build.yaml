@@ -70,7 +70,7 @@ jobs:
       - name: Upload the rebuilt app
         id: upload
         env:
-          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_AUTOFIX_TOKEN || secrets.APPKNOX_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
           file_id=$(./bin/appknox upload app/build/outputs/bundle/debug/app.aab --knoxiq)
@@ -81,12 +81,12 @@ jobs:
       # reason to stop, so a non-zero exit here is expected and ignored.
       - name: Wait for the static scan
         env:
-          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_AUTOFIX_TOKEN || secrets.APPKNOX_ACCESS_TOKEN }}
         run: ./bin/appknox cicheck "${{ steps.upload.outputs.file_id }}" --risk-threshold critical || true
 
       - name: Did the fixes clear the findings?
         env:
-          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_AUTOFIX_TOKEN || secrets.APPKNOX_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
           current="${{ steps.upload.outputs.file_id }}"
