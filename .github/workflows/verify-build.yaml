@@ -1,9 +1,13 @@
-# Compile-only check for an autofix branch.
+# Did the autofix actually fix anything?
 #
-# The autofix gate is static: it reads the patch, it does not build it. The
-# only thing that proves a patch compiles is a compiler, so this runs one --
-# and nothing else. No upload, no token, no autofix, so a verify run cannot
-# alter the scan it is verifying.
+# Two questions, and they are not the same one. Compiling proves the patch is
+# valid Java; only a rescan proves the finding cleared. The autofix gate is
+# static -- it reads the patch, it never builds or scans it -- so both answers
+# have to come from outside it.
+#
+# This builds the patched tree, uploads it, and diffs the new scan against the
+# scan the fixes were generated from. It never runs autofix, so a verify run
+# cannot change the thing it is verifying.
 name: Verify build
 
 # Push-triggered: workflow_dispatch needs the workflow on the default branch,
@@ -13,6 +17,15 @@ on:
     branches:
       - "verify/**"
   workflow_dispatch:
+    inputs:
+      baselineFileId:
+        description: "Appknox file id the fixes were generated from"
+        required: false
+        default: "24"
+
+env:
+  APPKNOX_API_HOST: https://autofix.staging.appknox.io/
+  BASELINE_FILE_ID: ${{ github.event.inputs.baselineFileId || '24' }}
 
 jobs:
   verify:
@@ -32,3 +45,90 @@ jobs:
 
       - name: Build the app
         run: ./gradlew bundle --stacktrace
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Checkout appknox-go
+        uses: actions/checkout@v4
+        with:
+          repository: appknox/appknox-go
+          ref: feat/autofix-cli-gate
+          path: appknox-go
+
+      - name: Build appknox CLI
+        working-directory: appknox-go
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/bin"
+          go build -o "$GITHUB_WORKSPACE/bin/appknox" .
+
+      # --knoxiq keeps this symmetric with the baseline upload. The comparison
+      # below reads the STATIC scan, which cicheck already waits for; KnoxIQ
+      # triage has no say in whether a finding cleared.
+      - name: Upload the rebuilt app
+        id: upload
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          file_id=$(./bin/appknox upload app/build/outputs/bundle/debug/app.aab --knoxiq)
+          echo "file_id=${file_id}" >> "$GITHUB_OUTPUT"
+          echo "uploaded as file ${file_id}"
+
+      # Waits for the static scan. Findings are the subject of this job, not a
+      # reason to stop, so a non-zero exit here is expected and ignored.
+      - name: Wait for the static scan
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
+        run: ./bin/appknox cicheck "${{ steps.upload.outputs.file_id }}" --risk-threshold critical || true
+
+      - name: Did the fixes clear the findings?
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          current="${{ steps.upload.outputs.file_id }}"
+          baseline="${BASELINE_FILE_ID}"
+          api() { curl -sf -H "Authorization: Token $APPKNOX_ACCESS_TOKEN" "$1"; }
+
+          echo "comparing file $current against baseline $baseline"
+          api "${APPKNOX_API_HOST}api/v2/files/$baseline/analyses?limit=200" > /tmp/baseline.json
+          api "${APPKNOX_API_HOST}api/v2/files/$current/analyses?limit=200"  > /tmp/current.json
+
+          python3 - <<'PY'
+          import json
+
+          def risky(path):
+              """vulnerability id -> computed risk, for anything above Passed."""
+              with open(path) as fh:
+                  data = json.load(fh)
+              return {a["vulnerability"]: a.get("computed_risk", 0)
+                      for a in data.get("results", [])
+                      if a.get("computed_risk", 0) > 0}
+
+          before, after = risky("/tmp/baseline.json"), risky("/tmp/current.json")
+          cleared    = sorted(set(before) - set(after))
+          remaining  = sorted(set(before) & set(after))
+          introduced = sorted(set(after) - set(before))
+
+          print(f"baseline risky findings : {len(before)}")
+          print(f"current  risky findings : {len(after)}")
+          print(f"CLEARED                 : {cleared}")
+          print(f"STILL PRESENT           : {remaining}")
+          print(f"NEWLY INTRODUCED        : {introduced}")
+
+          # Reported, never asserted. A finding can persist because the patch
+          # was wrong OR because the flagged code sits in a bundled dependency
+          # the patch cannot reach; this step cannot tell those apart.
+          if introduced:
+              print("::warning::this build introduced findings the baseline did not have")
+          PY
+
+      - name: Upload the analyses for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyses
+          path: /tmp/*.json
