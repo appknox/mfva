@@ -1,0 +1,29 @@
+# Compile-only check for an autofix branch.
+#
+# The autofix gate is static: it reads the patch, it does not build it. The
+# only thing that proves a patch compiles is a compiler, so this runs one --
+# and nothing else. No upload, no token, no autofix, so a verify run cannot
+# alter the scan it is verifying.
+name: Verify build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # mfva's Gradle wrapper is 5.1.1, which does not run on a modern JDK.
+      # JDK 8 is what the app's own build.yaml uses.
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build the app
+        run: ./gradlew bundle --stacktrace
