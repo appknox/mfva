@@ -14,6 +14,23 @@ public class ExportedReceiver extends BroadcastReceiver {
     private static final String TAG = "ExportedReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (intent == null || intent.getAction() == null) {
+            Log.w(TAG, "Received null intent or action.");
+            return;
+        }
+
+        switch (intent.getAction()) {
+            case Intent.ACTION_BOOT_COMPLETED:
+                Log.i(TAG, "Received BOOT_COMPLETED broadcast.");
+                break;
+            case Intent.ACTION_INPUT_METHOD_CHANGED:
+                Log.i(TAG, "Received INPUT_METHOD_CHANGED broadcast.");
+                break;
+            default:
+                Log.w(TAG, "Received unexpected action: " + intent.getAction());
+                return;
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append("Action: " + intent.getAction() + "\n");
         sb.append("URI: " + intent.toUri(Intent.URI_INTENT_SCHEME).toString() + "\n");
