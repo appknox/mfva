@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - master
+      # Lets the autofix path be exercised without pushing to master. mfva is a
+      # scanner fixture: its vulnerabilities are the product, so master must
+      # keep them and an autofix PR must never be merged there.
+      - "autofix-ci/**"
   workflow_dispatch:
     inputs:
       riskThreshold:
@@ -17,7 +21,6 @@ permissions:
 
 env:
   RISK_THRESHOLD: CRITICAL
-  APPKNOX_ACCESS_TOKEN: 22fcef1ca72bf19b2d9b9ba3a04d2a84f6055fcd
   APPKNOX_API_HOST: https://autofix.staging.appknox.io/
 jobs:
   build:
@@ -62,6 +65,8 @@ jobs:
       - name: Upload app and run Appknox cicheck
         id: appknox_scan
         continue-on-error: true
+        env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_AUTOFIX_TOKEN || secrets.APPKNOX_ACCESS_TOKEN }}
         run: |
           FILE_ID=$(./bin/appknox upload app/build/outputs/bundle/debug/app.aab --knoxiq)
           echo "Uploaded file id: $FILE_ID"
@@ -70,6 +75,7 @@ jobs:
       - name: Run Appknox autofix
         if: steps.appknox_scan.outputs.file_id != ''
         env:
+          APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_AUTOFIX_TOKEN || secrets.APPKNOX_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
