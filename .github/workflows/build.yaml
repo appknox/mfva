@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: appknox/appknox-go
-          ref: feat/autofix-cli-gate
+          ref: no-instructions
           path: appknox-go
       - name: Build appknox CLI
         working-directory: appknox-go
