@@ -25,12 +25,12 @@ on:
       currentFileId:
         description: "Already-uploaded file id to compare; skips build + upload when set"
         required: false
-        default: "44"
+        default: ""
 
 env:
   APPKNOX_API_HOST: https://autofix.staging.appknox.io/
   BASELINE_FILE_ID: ${{ github.event.inputs.baselineFileId || '44' }}
-  CURRENT_FILE_ID: ${{ github.event.inputs.currentFileId || '44' }}
+  CURRENT_FILE_ID: ${{ github.event.inputs.currentFileId || '' }}
 
 jobs:
   verify:
