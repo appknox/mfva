@@ -46,7 +46,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: mfva.aab
-          path: app/build/outputs/bundle/debug/app.aab
+          path: app/build/outputs/bundle/release/app.aab
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -68,7 +68,7 @@ jobs:
         env:
           APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_AUTOFIX_TOKEN || secrets.APPKNOX_ACCESS_TOKEN }}
         run: |
-          FILE_ID=$(./bin/appknox upload app/build/outputs/bundle/debug/app.aab --knoxiq)
+          FILE_ID=$(./bin/appknox upload app/build/outputs/bundle/release/app.aab --knoxiq)
           echo "Uploaded file id: $FILE_ID"
           echo "file_id=$FILE_ID" >> "$GITHUB_OUTPUT"
           ./bin/appknox cicheck "$FILE_ID" --risk-threshold "${RISK_THRESHOLD}"
