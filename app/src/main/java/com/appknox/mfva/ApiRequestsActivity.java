@@ -46,7 +46,7 @@ public class ApiRequestsActivity extends AppCompatActivity {
 
                         // Connection check
                         Request request0 = new Request.Builder()
-                                .url("http://vapi.appknox.io")
+                                .url("https://vapi.appknox.io")
                                 .build();
                         try {
                             textViewLogs.post(new Runnable() {
@@ -165,11 +165,11 @@ public class ApiRequestsActivity extends AppCompatActivity {
                             });
                             Request request3 = new Request.Builder()
                                     .header("X-Auth-Token", token)
-                                    .url("http://vapi.appknox.io/uptime")
+                                    .url("https://vapi.appknox.io/uptime")
                                     .build();
                             Request request4 = new Request.Builder()
                                     .header("X-Auth-Token", token)
-                                    .url("http://vapi.appknox.io/uptime/s")
+                                    .url("https://vapi.appknox.io/uptime/s")
                                     .build();
                             client.newCall(request3).execute();
                             JSONObject json4 = new JSONObject(client.newCall(request4).execute().body().string());
