@@ -46,7 +46,7 @@ public class ApiRequestsActivity extends AppCompatActivity {
 
                         // Connection check
                         Request request0 = new Request.Builder()
-                                .url("http://vapi.appknox.io")
+                                .url("https://vapi.appknox.io")
                                 .build();
                         try {
                             textViewLogs.post(new Runnable() {
@@ -64,7 +64,7 @@ public class ApiRequestsActivity extends AppCompatActivity {
                         // Authenticate
                         RequestBody body1 = RequestBody.create(JSON, "{\"auth\":{\"passwordCredentials\":{\"username\":\"user1\",\"password\":\"pass1\"}}}");
                         Request request1 = new Request.Builder()
-                                .url("http://vapi.appknox.io/tokens")
+                                .url("https://vapi.appknox.io/tokens")
                                 .post(body1)
                                 .build();
                         try {
@@ -105,7 +105,7 @@ public class ApiRequestsActivity extends AppCompatActivity {
                         // Get user
                         Request request2 = new Request.Builder()
                                 .header("X-Auth-Token", token)
-                                .url("http://vapi.appknox.io/user/1")
+                                .url("https://vapi.appknox.io/user/1")
                                 .build();
                         try {
                             textViewLogs.post(new Runnable() {
@@ -132,7 +132,7 @@ public class ApiRequestsActivity extends AppCompatActivity {
                         RequestBody body5 = RequestBody.create(JSON, "{\"user\":{\"username\":\"" +
                                  user5 + "\",\"password\":\"" + password5 + "\"}}\n");
                         Request request5 = new Request.Builder()
-                                .url("http://vapi.appknox.io/user")
+                                .url("https://vapi.appknox.io/user")
                                 .post(body5)
                                 .build();
                         try {
@@ -165,11 +165,11 @@ public class ApiRequestsActivity extends AppCompatActivity {
                             });
                             Request request3 = new Request.Builder()
                                     .header("X-Auth-Token", token)
-                                    .url("http://vapi.appknox.io/uptime")
+                                    .url("https://vapi.appknox.io/uptime")
                                     .build();
                             Request request4 = new Request.Builder()
                                     .header("X-Auth-Token", token)
-                                    .url("http://vapi.appknox.io/uptime/s")
+                                    .url("https://vapi.appknox.io/uptime/s")
                                     .build();
                             client.newCall(request3).execute();
                             JSONObject json4 = new JSONObject(client.newCall(request4).execute().body().string());

@@ -2,31 +2,45 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.appknox.mfva">
 
+    <!--
+        Janus Vulnerability (CVE-2017-13156) remediation note:
+        The build is configured to disable v1 (JAR) signing and only sign the
+        APK with the v2/v3 APK Signature Scheme (see app/build.gradle
+        signingConfigs.release: v1SigningEnabled false, v2SigningEnabled true,
+        v3SigningEnabled true). Disabling v1 signing is only safe for devices
+        running Android 7.0 (API 24) or higher, since older platform versions
+        cannot verify v2/v3 signatures and require a v1 signature to install
+        the APK. Declaring minSdkVersion 24 here ensures the app is not
+        installed on vulnerable/unsupported pre-Nougat devices that would
+        otherwise require v1 signing.
+    -->
+    <uses-sdk android:minSdkVersion="24" />
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- To auto-complete the email text field in the login form with the user's emails -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <permission
         android:name="com.appknox.mfva.CustomPermission"
         android:description="@string/permission_custom"
-        android:label="@string/permission_custom" />
+        android:label="@string/permission_custom"
+        android:protectionLevel="signature" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="false"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity
             android:name=".MainActivity"
             android:label="@string/activity_title_main"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:taskAffinity=""
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -36,7 +50,7 @@
         <activity
             android:name=".RegisterActivity"
             android:label="@string/title_activity_register"
-            android:exported="true"
+            android:exported="false"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
 
@@ -62,7 +76,7 @@
         <service
             android:name=".ExportedService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
         <service
             android:name=".UnprotectedService"
             android:enabled="true"
