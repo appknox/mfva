@@ -17,6 +17,8 @@ public class WebViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_webview);
 
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_api_requests);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
