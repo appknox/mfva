@@ -21,15 +21,15 @@ on:
       baselineFileId:
         description: "Appknox file id the fixes were generated from"
         required: false
-        default: ""
+        default: "77"
       currentFileId:
         description: "Already-uploaded file id to compare; skips build + upload when set"
         required: false
-        default: ""
+        default: "77"
 
 env:
   APPKNOX_API_HOST: https://autofix.staging.appknox.io/
-  BASELINE_FILE_ID: ${{ github.event.inputs.baselineFileId || '' }}
+  BASELINE_FILE_ID: ${{ github.event.inputs.baselineFileId || '77' }}
   CURRENT_FILE_ID: ${{ github.event.inputs.currentFileId || '' }}
 
 jobs:
