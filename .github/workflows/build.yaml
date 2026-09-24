@@ -10,8 +10,15 @@ on:
         description: "Risk Threshold"
         required: false
         default: CRITICAL
+
+permissions:
+  contents: write
+  pull-requests: write
+
 env:
   RISK_THRESHOLD: CRITICAL
+  APPKNOX_ACCESS_TOKEN: 22fcef1ca72bf19b2d9b9ba3a04d2a84f6055fcd
+  APPKNOX_API_HOST: https://autofix.staging.appknox.io/
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -33,13 +40,42 @@ jobs:
         run: chmod +x gradlew
       - name: Build the app
         run: ./gradlew bundle
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: mfva.aab
           path: app/build/outputs/bundle/debug/app.aab
-      - name: Appknox GitHub action
-        uses: appknox/appknox-github-action@1.0.0
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          appknox_access_token: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
-          file_path: app/build/outputs/bundle/debug/app.aab
-          risk_threshold: ${{ env.RISK_THRESHOLD }}
+          go-version: "1.24"
+      - name: Checkout appknox-go
+        uses: actions/checkout@v4
+        with:
+          repository: appknox/appknox-go
+          ref: feat/autofix-cli
+          path: appknox-go
+      - name: Build appknox CLI
+        working-directory: appknox-go
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/bin"
+          go build -o "$GITHUB_WORKSPACE/bin/appknox" .
+      - name: Upload app and run Appknox cicheck
+        id: appknox_scan
+        continue-on-error: true
+        run: |
+          FILE_ID=$(./bin/appknox upload app/build/outputs/bundle/debug/app.aab --knoxiq)
+          echo "Uploaded file id: $FILE_ID"
+          echo "file_id=$FILE_ID" >> "$GITHUB_OUTPUT"
+          ./bin/appknox cicheck "$FILE_ID" --risk-threshold "${RISK_THRESHOLD}"
+      - name: Run Appknox autofix
+        if: steps.appknox_scan.outputs.file_id != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          APPKNOX=./bin/appknox
+          FILE_ID="${{ steps.appknox_scan.outputs.file_id }}"
+          $APPKNOX autofix --file-id "$FILE_ID"
+      - name: Fail if cicheck found issues
+        if: steps.appknox_scan.outcome == 'failure'
+        run: exit 1
