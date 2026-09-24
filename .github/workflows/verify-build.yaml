@@ -25,7 +25,7 @@ on:
       currentFileId:
         description: "Already-uploaded file id to compare; skips build + upload when set"
         required: false
-        default: "77"
+        default: ""
 
 env:
   APPKNOX_API_HOST: https://autofix.staging.appknox.io/
