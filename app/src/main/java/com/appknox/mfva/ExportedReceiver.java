@@ -14,11 +14,16 @@ public class ExportedReceiver extends BroadcastReceiver {
     private static final String TAG = "ExportedReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Action: " + intent.getAction() + "\n");
-        sb.append("URI: " + intent.toUri(Intent.URI_INTENT_SCHEME).toString() + "\n");
-        String log = sb.toString();
-        Log.d(TAG, log);
-        Toast.makeText(context, log, Toast.LENGTH_LONG).show();
+        String action = intent.getAction();
+
+        // Validate the intent action
+        if (!"android.intent.action.BOOT_COMPLETED".equals(action) &&
+                !"android.intent.action.INPUT_METHOD_CHANGED".equals(action)) {
+            // Log a warning for unexpected actions and return immediately
+            Log.w(TAG, "Received unexpected action: " + action);
+            return;
+        }
+
+        Toast.makeText(context, "System event received: " + action, Toast.LENGTH_SHORT).show();
     }
 }
