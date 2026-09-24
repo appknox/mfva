@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.WindowManager;
 import android.webkit.WebView;
 
 /**
@@ -14,6 +15,10 @@ public class WebViewActivity extends AppCompatActivity {
     private WebView webView;
 
     public void onCreate(Bundle savedInstanceState) {
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE
+        );
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_webview);
 
