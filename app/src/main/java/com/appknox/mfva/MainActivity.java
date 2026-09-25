@@ -14,6 +14,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.appknox.mfva.security.HookingDetector;
+import com.appknox.mfva.security.SecurityPolicy;
+import com.appknox.mfva.security.SecurityUtils;
+
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -30,9 +34,25 @@ import javax.crypto.spec.SecretKeySpec;
 
 
 public class MainActivity extends AppCompatActivity {
+    private SecureCryptoManager secureCryptoManager = new SecureCryptoManager();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                android.view.WindowManager.LayoutParams.FLAG_SECURE
+        );
         super.onCreate(savedInstanceState);
+
+        if (HookingDetector.isHooked(this)) {
+            throw new SecurityException("Hooking framework detected");
+        }
+
+        if (!BuildConfig.DEBUG && SecurityUtils.isDeveloperOptionsEnabled(this)) {
+            SecurityPolicy.handleDeveloperOptionsEnabled(this);
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
@@ -137,21 +157,35 @@ public class MainActivity extends AppCompatActivity {
         buttonEncrypt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+
                 try {
-                    String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    if (HookingDetector.isHooked(context)) {
+                        throw new SecurityException("Hooking framework detected before sensitive action");
+                    }
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    SecretKey secureKey = MainActivity.this.secureCryptoManager.getOrCreateSecureKey();
 
-                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
+                    SecureCryptoManager.EncryptionResult encryptedResult =
+                            MainActivity.this.secureCryptoManager.encryptData(quote.getBytes(java.nio.charset.StandardCharsets.UTF_8), secureKey);
+
+                    String encryptedBase64 = android.util.Base64.encodeToString(encryptedResult.ciphertext, android.util.Base64.DEFAULT);
+                    String ivBase64 = android.util.Base64.encodeToString(encryptedResult.iv, android.util.Base64.DEFAULT);
+
+                    Snackbar.make(v, "Encrypted (Ciphertext): " + encryptedBase64 + "\nIV: " + ivBase64, Snackbar.LENGTH_LONG).show();
+                } catch (Exception e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!BuildConfig.DEBUG && SecurityUtils.isAdbEnabled(this)) {
+            SecurityPolicy.handleAdbEnabled(this);
+        }
     }
 
     @Override
