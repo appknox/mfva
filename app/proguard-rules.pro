@@ -23,3 +23,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+}
+
+-keepattributes *Annotation*, EnclosingMethod, InnerClasses
+
+-assumenosideeffects class android.util.Log {
+    public static int i(...);
+}

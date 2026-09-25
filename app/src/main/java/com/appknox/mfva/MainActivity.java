@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 
 import java.security.InvalidAlgorithmParameterException;
@@ -30,10 +31,19 @@ import javax.crypto.spec.SecretKeySpec;
 
 
 public class MainActivity extends AppCompatActivity {
+    private static final java.security.SecureRandom secureRandom = new java.security.SecureRandom();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Set FLAG_SECURE to prevent screen capture and recording
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE
+        );
         setContentView(R.layout.activity_main);
+
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
@@ -80,7 +90,8 @@ public class MainActivity extends AppCompatActivity {
                         "os.name",
                         "os.version",
                 };
-                String key = keys[(int) (Math.random() * keys.length)];
+                java.security.SecureRandom secureRandom = new java.security.SecureRandom();
+                String key = keys[secureRandom.nextInt(keys.length)];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -109,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                String quote = quotes[(int) (Math.random() * quotes.length)];
+                String quote = quotes[secureRandom.nextInt(quotes.length)];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
@@ -140,14 +151,22 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    byte[] plaintext = quote.getBytes();
+                    char[] password = "Gangnam!".toCharArray();
 
-                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
+                    byte[] salt = SecureCryptoManager.generateSecureRandom(16);
+                    SecretKey secretKey = SecureCryptoManager.deriveKeyFromPassword(password, salt);
+                    SecureCryptoManager.EncryptionResult encryptionResult = SecureCryptoManager.encryptData(plaintext, secretKey);
+
+                    byte[] combinedEncryptedData = new byte[salt.length + encryptionResult.getIv().length + encryptionResult.getCiphertext().length];
+                    System.arraycopy(salt, 0, combinedEncryptedData, 0, salt.length);
+                    System.arraycopy(encryptionResult.getIv(), 0, combinedEncryptedData, salt.length, encryptionResult.getIv().length);
+                    System.arraycopy(encryptionResult.getCiphertext(), 0, combinedEncryptedData, salt.length + encryptionResult.getIv().length, encryptionResult.getCiphertext().length);
+
+                    String encryptedTextBase64 = android.util.Base64.encodeToString(combinedEncryptedData, android.util.Base64.DEFAULT);
+
+                    Snackbar.make(v, "Encrypted: " + encryptedTextBase64, Snackbar.LENGTH_SHORT).show();
+                } catch (java.security.GeneralSecurityException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
             }
