@@ -166,11 +166,11 @@ public class MainActivity extends AppCompatActivity {
 
                     SecretKey secureKey = MainActivity.this.secureCryptoManager.getOrCreateSecureKey();
 
-                    SecureCryptoManager.EncryptionResult encryptedResult =
+                    EncryptionResult encryptedResult =
                             MainActivity.this.secureCryptoManager.encryptData(quote.getBytes(java.nio.charset.StandardCharsets.UTF_8), secureKey);
 
-                    String encryptedBase64 = android.util.Base64.encodeToString(encryptedResult.ciphertext, android.util.Base64.DEFAULT);
-                    String ivBase64 = android.util.Base64.encodeToString(encryptedResult.iv, android.util.Base64.DEFAULT);
+                    String encryptedBase64 = android.util.Base64.encodeToString(encryptedResult.getCiphertext(), android.util.Base64.DEFAULT);
+                    String ivBase64 = android.util.Base64.encodeToString(encryptedResult.getIv(), android.util.Base64.DEFAULT);
 
                     Snackbar.make(v, "Encrypted (Ciphertext): " + encryptedBase64 + "\nIV: " + ivBase64, Snackbar.LENGTH_LONG).show();
                 } catch (Exception e) {
