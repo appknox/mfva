@@ -23,3 +23,15 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+}
+
+# proguard-rules.pro — keep only reflection targets; obfuscate everything else
+-keepattributes *Annotation*, EnclosingMethod, InnerClasses
+
+# Example: keep data models if used with reflection (adjust package to match your project)
+# -keep class com.appknox.mfva.model.** { *; }

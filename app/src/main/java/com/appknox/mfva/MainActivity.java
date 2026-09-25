@@ -13,6 +13,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.view.WindowManager;
+
+import com.appknox.mfva.security.SecurityPolicy;
+import com.appknox.mfva.security.SecurityUtils;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -32,7 +36,17 @@ import javax.crypto.spec.SecretKeySpec;
 public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE
+        );
         super.onCreate(savedInstanceState);
+
+        if (!BuildConfig.DEBUG && SecurityUtils.isAdbEnabled(this)) {
+            SecurityPolicy.handleAdbEnabled(this);
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
@@ -140,14 +154,16 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    SecureCryptoManager cryptoManager = new SecureCryptoManager();
+                    SecretKey secureKey = cryptoManager.getOrCreateSecureKey();
 
-                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
+                    EncryptionResult encryptedData = cryptoManager.encryptData(quote.getBytes(), secureKey);
+
+                    String encryptedBase64 = android.util.Base64.encodeToString(encryptedData.getCiphertext(), android.util.Base64.DEFAULT);
+                    String ivBase64 = android.util.Base64.encodeToString(encryptedData.getIv(), android.util.Base64.DEFAULT);
+
+                    Snackbar.make(v, "Encrypted (Ciphertext): " + encryptedBase64 + "\nIV: " + ivBase64, Snackbar.LENGTH_SHORT).show();
+                } catch (Exception e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
             }
