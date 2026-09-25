@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.WindowManager;
 import android.webkit.WebView;
 
 /**
@@ -15,7 +16,14 @@ public class WebViewActivity extends AppCompatActivity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Set FLAG_SECURE to prevent screen capture and recording
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE
+        );
         setContentView(R.layout.activity_webview);
+
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_api_requests);
         setSupportActionBar(toolbar);
