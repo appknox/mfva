@@ -8,13 +8,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.view.WindowManager;
 
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -31,15 +32,11 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends SecureBaseActivity {
     private static final SecureRandom secureRandom = new SecureRandom();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-        );
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -147,18 +144,31 @@ public class MainActivity extends AppCompatActivity {
         buttonEncrypt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+
                 try {
-                    String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    SecureCryptoManager cryptoManager = new SecureCryptoManager();
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    char[] password = "MySuperSecretPassword123!".toCharArray();
 
-                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
-                    Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
+                    byte[] salt = cryptoManager.generateSecureRandom(16);
+
+                    SecretKey secureKey = cryptoManager.deriveKeyFromPassword(password, salt);
+
+                    SecureCryptoManager.EncryptionResult encryptionResult =
+                            cryptoManager.encryptData(quote.getBytes("UTF-8"), secureKey);
+
+                    String encryptedDataString = Base64.encodeToString(encryptionResult.ciphertext, Base64.DEFAULT) +
+                            ":" +
+                            Base64.encodeToString(encryptionResult.iv, Base64.DEFAULT);
+
+                    Snackbar.make(v, "Encrypted Data (AES/GCM): " + encryptedDataString, Snackbar.LENGTH_LONG).show();
+                } catch (GeneralSecurityException e) {
+                    Snackbar.make(v, "Encryption failed: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    Snackbar.make(v, "Error: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    e.printStackTrace();
                 }
             }
         });

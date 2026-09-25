@@ -2,67 +2,49 @@ package com.appknox.mfva;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
 import android.util.Log;
-import android.view.WindowManager;
 
-import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 
-import redis.clients.jedis.Jedis;
-
-public class ExportedActivity extends AppCompatActivity {
-
-    private static final String KEY_ALIAS = "secure_app_key";
-    private static final String AES_TRANSFORMATION = "AES/GCM/NoPadding";
+public class ExportedActivity extends SecureBaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-        );
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_exported);
 
         if (BuildConfig.DEBUG) {
             Log.d("redis", "Initialising jedis...");
         }
-        Jedis jedis = new Jedis("localhost");
 
         try {
-            SecretKey secureKey = getOrCreateSecretKey();
-            Cipher cipher = Cipher.getInstance(AES_TRANSFORMATION);
-            cipher.init(Cipher.ENCRYPT_MODE, secureKey);
-        } catch (Exception e) {
+            // Generate a secure AES key (for demonstration; ideally use Android Keystore)
+            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+            keyGen.init(256); // 256-bit AES key
+            SecretKey secureKey = keyGen.generateKey();
+
+            // Generate a cryptographically secure random IV (nonce) for GCM
+            byte[] iv = new byte[12]; // 96-bit IV for GCM
+            new SecureRandom().nextBytes(iv);
+
+            // Initialize Cipher with AES/GCM/NoPadding
+            Cipher secureCipher = Cipher.getInstance("AES/GCM/NoPadding");
+            // GCMParameterSpec requires tag length in bits (128 bits = 16 bytes)
+            GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv);
+            secureCipher.init(Cipher.ENCRYPT_MODE, secureKey, gcmSpec);
+        } catch (NoSuchAlgorithmException|NoSuchPaddingException e) {
             // pass
-        }
-    }
-
-    private SecretKey getOrCreateSecretKey() throws Exception {
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-
-        if (!keyStore.containsAlias(KEY_ALIAS)) {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(
-                    KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-            KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder(
-                    KEY_ALIAS,
-                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setRandomizedEncryptionRequired(true)
-                    .build();
-            keyGenerator.init(keyGenParameterSpec);
-            return keyGenerator.generateKey();
-        } else {
-            KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry)
-                    keyStore.getEntry(KEY_ALIAS, null);
-            return secretKeyEntry.getSecretKey();
+        } catch (Exception e) {
+            // Handle cryptographic exceptions appropriately, e.g., log and inform user
+            e.printStackTrace();
         }
     }
 }
