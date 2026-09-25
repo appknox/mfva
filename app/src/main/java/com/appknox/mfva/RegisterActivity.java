@@ -2,12 +2,11 @@ package com.appknox.mfva;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends SecureBaseActivity {
 
     EditText USER_NAME,USER_PASS;
     String user_name,user_pass;
