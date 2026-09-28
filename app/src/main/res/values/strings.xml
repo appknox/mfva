@@ -20,4 +20,6 @@
     <string name="button_encrypt">Encrypt with DES/ECB</string>
 
     <string name="permission_custom">Custom Permission</string>
+
+    <string name="secure_keyboard_name">Secure Keyboard</string>
 </resources>

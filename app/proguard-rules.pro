@@ -24,13 +24,12 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# Strip Log.d and Log.v calls from release builds
 -assumenosideeffects class android.util.Log {
-    public static int v(...);
-    public static int d(...);
+ public static int v(...);
+ public static int d(...);
+ public static int i(...);
 }
 
+# Keep attributes necessary for debugging and reflection
 -keepattributes *Annotation*, EnclosingMethod, InnerClasses
-
--assumenosideeffects class android.util.Log {
-    public static int i(...);
-}

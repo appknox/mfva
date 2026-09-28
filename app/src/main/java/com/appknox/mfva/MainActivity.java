@@ -5,14 +5,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 
 import java.security.InvalidAlgorithmParameterException;
@@ -20,6 +19,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -30,17 +30,12 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
-public class MainActivity extends AppCompatActivity {
-    private static final java.security.SecureRandom secureRandom = new java.security.SecureRandom();
+public class MainActivity extends SecureBaseActivity {
+    private static final SecureRandom secureRandom = new SecureRandom();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Set FLAG_SECURE to prevent screen capture and recording
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-        );
         setContentView(R.layout.activity_main);
 
         getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
@@ -90,8 +85,7 @@ public class MainActivity extends AppCompatActivity {
                         "os.name",
                         "os.version",
                 };
-                java.security.SecureRandom secureRandom = new java.security.SecureRandom();
-                String key = keys[secureRandom.nextInt(keys.length)];
+                String key = keys[new SecureRandom().nextInt(keys.length)];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -149,25 +143,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    SecureCryptoManager cryptoManager = new SecureCryptoManager(v.getContext());
+                    SecretKey secureKey = cryptoManager.generateSecureKey();
 
-                    byte[] plaintext = quote.getBytes();
-                    char[] password = "Gangnam!".toCharArray();
+                    String plaintext = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    EncryptionResult encryptionResult = cryptoManager.encryptData(plaintext.getBytes(), secureKey);
 
-                    byte[] salt = SecureCryptoManager.generateSecureRandom(16);
-                    SecretKey secretKey = SecureCryptoManager.deriveKeyFromPassword(password, salt);
-                    SecureCryptoManager.EncryptionResult encryptionResult = SecureCryptoManager.encryptData(plaintext, secretKey);
+                    String encryptedBase64 = Base64.encodeToString(encryptionResult.getCiphertext(), Base64.DEFAULT);
+                    Snackbar.make(v, "Encrypted: " + encryptedBase64, Snackbar.LENGTH_LONG).show();
 
-                    byte[] combinedEncryptedData = new byte[salt.length + encryptionResult.getIv().length + encryptionResult.getCiphertext().length];
-                    System.arraycopy(salt, 0, combinedEncryptedData, 0, salt.length);
-                    System.arraycopy(encryptionResult.getIv(), 0, combinedEncryptedData, salt.length, encryptionResult.getIv().length);
-                    System.arraycopy(encryptionResult.getCiphertext(), 0, combinedEncryptedData, salt.length + encryptionResult.getIv().length, encryptionResult.getCiphertext().length);
+                    byte[] decryptedBytes = cryptoManager.decryptData(encryptionResult, secureKey);
+                    String decryptedText = new String(decryptedBytes);
+                    Log.d("Crypto", "Decrypted: " + decryptedText);
 
-                    String encryptedTextBase64 = android.util.Base64.encodeToString(combinedEncryptedData, android.util.Base64.DEFAULT);
-
-                    Snackbar.make(v, "Encrypted: " + encryptedTextBase64, Snackbar.LENGTH_SHORT).show();
-                } catch (java.security.GeneralSecurityException e) {
-                    Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Snackbar.make(v, "Encryption failed: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    Log.e("Crypto", "Error during crypto operation", e);
                 }
             }
         });
