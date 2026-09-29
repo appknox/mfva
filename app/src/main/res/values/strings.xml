@@ -17,7 +17,8 @@
     <string name="button_api_requests">API requests</string>
     <string name="button_start_api_requests">Start API requests</string>
     <string name="button_calculate_checksum">Calculate checksum with MD5</string>
-    <string name="button_encrypt">Encrypt with DES/ECB</string>
+    <string name="button_encrypt">Encrypt with AES/GCM</string>
+    <string name="secure_keyboard_name">MFVA secure keyboard</string>
 
     <string name="permission_custom">Custom Permission</string>
 </resources>

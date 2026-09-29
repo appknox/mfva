@@ -9,6 +9,7 @@
     android:layout_gravity="center"
     android:gravity="center"
     android:background="@android:color/holo_red_light"
+    android:filterTouchesWhenObscured="true"
     android:layout_marginRight="10dp"
     android:layout_marginLeft="10dp">
 

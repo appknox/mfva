@@ -1,8 +1,6 @@
 package com.appknox.mfva;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.webkit.WebView;
 
@@ -10,12 +8,14 @@ import android.webkit.WebView;
  * Created by viren on 23/5/17.
  */
 
-public class WebViewActivity extends AppCompatActivity {
+public class WebViewActivity extends SecureBaseActivity {
     private WebView webView;
 
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_webview);
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_api_requests);
         setSupportActionBar(toolbar);
@@ -23,6 +23,6 @@ public class WebViewActivity extends AppCompatActivity {
 
         webView = (WebView) findViewById(R.id.activity_webview);
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadUrl("http://example.com");
+        webView.loadUrl("https://example.com");
     }
 }
