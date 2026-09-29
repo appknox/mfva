@@ -1,7 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    namespace "com.appknox.mfva"
+    compileSdk 34
     defaultConfig {
         applicationId "com.appknox.mfva"
         minSdkVersion 23
@@ -9,6 +10,14 @@ android {
         versionCode 8
         versionName "1.1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        release {
+            storeFile file("${System.properties['user.home']}/.android/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
     }
     buildTypes {
         debug {
@@ -19,12 +28,19 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
-    lintOptions {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildFeatures {
+        buildConfig true
+    }
+    lint {
         abortOnError false
     }
-
 }
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])

@@ -9,6 +9,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 
 import javax.crypto.Cipher;
@@ -34,7 +35,7 @@ public class SecureCryptoManager {
 
     public static SecretKey getOrCreateSecureKey() throws NoSuchAlgorithmException,
             NoSuchProviderException, InvalidAlgorithmParameterException, KeyStoreException,
-            CertificateException, IOException {
+            CertificateException, IOException, UnrecoverableEntryException {
         initKeyStore();
         if (!keyStore.containsAlias(KEY_ALIAS)) {
             KeyGenerator keyGenerator = KeyGenerator.getInstance(

@@ -158,15 +158,12 @@ public class MainActivity extends SecureBaseActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_about:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage(R.string.about_message).setTitle(R.string.about_title);
-                builder.create().show();
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.action_about) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(R.string.about_message).setTitle(R.string.about_title);
+            builder.create().show();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 }
