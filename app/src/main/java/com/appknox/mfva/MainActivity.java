@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,6 +19,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -29,11 +30,15 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends SecureBaseActivity {
+    private static final SecureRandom secureRandom = new SecureRandom();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
@@ -80,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                         "os.name",
                         "os.version",
                 };
-                String key = keys[(int) (Math.random() * keys.length)];
+                String key = keys[new SecureRandom().nextInt(keys.length)];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -109,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                String quote = quotes[(int) (Math.random() * quotes.length)];
+                String quote = quotes[secureRandom.nextInt(quotes.length)];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
@@ -138,17 +143,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    SecureCryptoManager cryptoManager = new SecureCryptoManager(v.getContext());
+                    SecretKey secureKey = cryptoManager.generateSecureKey();
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    String plaintext = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    EncryptionResult encryptionResult = cryptoManager.encryptData(plaintext.getBytes(), secureKey);
 
-                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
-                    Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
+                    String encryptedBase64 = Base64.encodeToString(encryptionResult.getCiphertext(), Base64.DEFAULT);
+                    Snackbar.make(v, "Encrypted: " + encryptedBase64, Snackbar.LENGTH_LONG).show();
+
+                    byte[] decryptedBytes = cryptoManager.decryptData(encryptionResult, secureKey);
+                    String decryptedText = new String(decryptedBytes);
+                    Log.d("Crypto", "Decrypted: " + decryptedText);
+
+                } catch (Exception e) {
+                    Snackbar.make(v, "Encryption failed: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    Log.e("Crypto", "Error during crypto operation", e);
                 }
             }
         });
