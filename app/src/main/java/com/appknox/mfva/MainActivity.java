@@ -8,12 +8,18 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 
+import com.appknox.mfva.security.SecurityPolicy;
+import com.appknox.mfva.security.SecurityUtils;
+
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -30,9 +36,21 @@ import javax.crypto.spec.SecretKeySpec;
 
 
 public class MainActivity extends AppCompatActivity {
+    private SecureCryptoManager secureCryptoManager = new SecureCryptoManager();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        );
         super.onCreate(savedInstanceState);
+
+        if (!BuildConfig.DEBUG && SecurityUtils.isDeveloperOptionsEnabled(this)) {
+            SecurityPolicy.handleDeveloperOptionsEnabled(this);
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
@@ -137,21 +155,35 @@ public class MainActivity extends AppCompatActivity {
         buttonEncrypt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String plaintext = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
                 try {
-                    String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    // Get or create the secure key using Android Keystore
+                    SecretKey secureKey = MainActivity.this.secureCryptoManager.getOrCreateSecureKey();
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    // Encrypt the data using AES-GCM
+                    EncryptionResult encryptedResult = MainActivity.this.secureCryptoManager.encryptData(plaintext.getBytes(StandardCharsets.UTF_8), secureKey);
 
-                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
-                    Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
+                    // Convert encrypted data to Base64 for display in Snackbar
+                    String encryptedBase64 = android.util.Base64.encodeToString(encryptedResult.getCiphertext(), android.util.Base64.DEFAULT);
+                    String ivBase64 = android.util.Base64.encodeToString(encryptedResult.getIv(), android.util.Base64.DEFAULT);
+
+                    // Display encrypted data (or a representation) in Snackbar
+                    Snackbar.make(v, "Encrypted (Ciphertext): " + encryptedBase64 + "\nIV: " + ivBase64, Snackbar.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Snackbar.make(v, "Encryption/Decryption failed: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    e.printStackTrace();
                 }
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Only enforce in release builds
+        if (!BuildConfig.DEBUG && SecurityUtils.isAdbEnabled(this)) {
+            SecurityPolicy.handleAdbEnabled(this);
+        }
     }
 
     @Override

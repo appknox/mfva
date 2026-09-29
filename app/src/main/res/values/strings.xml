@@ -20,4 +20,6 @@
     <string name="button_encrypt">Encrypt with DES/ECB</string>
 
     <string name="permission_custom">Custom Permission</string>
+
+    <string name="subtype_label_english_us">English (US)</string>
 </resources>
