@@ -2,20 +2,23 @@ package com.appknox.mfva;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 import android.webkit.WebView;
 
 /**
  * Created by viren on 23/5/17.
  */
 
-public class WebViewActivity extends AppCompatActivity {
+public class WebViewActivity extends SecureBaseActivity {
     private WebView webView;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_webview);
+
+        View rootView = getWindow().getDecorView().getRootView();
+        rootView.setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_api_requests);
         setSupportActionBar(toolbar);
