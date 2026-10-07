@@ -58,3 +58,6 @@ jobs:
           risk_threshold: ${{ github.event.inputs.riskThreshold }}
           sast_timeout: ${{ github.event.inputs.sastTimeout }}
           sarif: ${{ github.event.inputs.sarif }}
+          trigger_knoxiq: ${{ github.event.inputs.trigger_knoxiq }}
+          generate_pdf_report: ${{ github.event.inputs.generate_pdf_report }}
+          
