@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -19,21 +19,29 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
+import java.nio.charset.StandardCharsets;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends SecureBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
@@ -80,7 +88,8 @@ public class MainActivity extends AppCompatActivity {
                         "os.name",
                         "os.version",
                 };
-                String key = keys[(int) (Math.random() * keys.length)];
+                SecureRandom secureRandom = new SecureRandom();
+                String key = keys[secureRandom.nextInt(keys.length)];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -109,7 +118,8 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                String quote = quotes[(int) (Math.random() * quotes.length)];
+                SecureRandom secureRandom = new SecureRandom();
+                String quote = quotes[secureRandom.nextInt(quotes.length)];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
@@ -140,14 +150,33 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    // 1. Generate a secure random salt for PBKDF2
+                    SecureRandom secureRandom = new SecureRandom();
+                    byte[] salt = new byte[16]; // 128-bit salt
+                    secureRandom.nextBytes(salt);
+
+                    // 2. Derive a strong key using PBKDF2 from the original 'password'
+                    char[] password = "Gangnam!".toCharArray(); // Use the original key string as password
+                    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+                    PBEKeySpec spec = new PBEKeySpec(password, salt, 100000, 256); // 100k iterations, 256-bit key
+                    SecretKey derivedKey = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+
+                    // 3. Generate a secure random IV for AES/GCM
+                    byte[] iv = new byte[12]; // 96-bit IV for GCM
+                    secureRandom.nextBytes(iv);
+
+                    // 4. Get AES/GCM/NoPadding cipher instance
+                    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+
+                    // 5. Initialize cipher with derived key and GCMParameterSpec
+                    GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv); // 128-bit authentication tag
+                    cipher.init(Cipher.ENCRYPT_MODE, derivedKey, gcmSpec);
+
+                    // Perform encryption
+                    byte[] encryptedData = cipher.doFinal(quote.getBytes(StandardCharsets.UTF_8));
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
+                } catch (GeneralSecurityException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
             }
