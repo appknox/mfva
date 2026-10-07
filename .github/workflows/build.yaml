@@ -22,6 +22,14 @@ on:
         description: "Enable SARIF report (Enable/Disable)"
         required: false
         default: "Disable"
+      trigger_knoxiq:
+        description: "Trigger KnoxIQ"
+        type: boolean
+        default: false
+      generate_pdf_report:
+        description: "Generate PDF report"
+        type: boolean
+        default: false
 
 jobs:
   build:
