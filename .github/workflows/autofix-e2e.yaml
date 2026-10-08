@@ -94,7 +94,7 @@ env:
   # by oversight: a separate gateway URL could drift from the API host, and a
   # run pointed at a mismatched pair failed at the first model turn.
   APPKNOX_API_HOST: https://autofix.staging.appknox.io/
-  AUTOFIX_CLI_REF: autofix-v3
+  AUTOFIX_CLI_REF: feat/autofix-full-support-v2
 
 jobs:
   autofix:
@@ -498,10 +498,10 @@ jobs:
           # provider key server-side; the gateway address is derived from
           # --host. --repo, --repo-path and the base ref come from the runner's
           # own environment, so nothing here restates what CI already knows.
+          # feat/autofix-full-support-v2 CLI: --risk-threshold, --analysis-id,
+          # --allow-unverified and --push-branch are gone; it pushes unless
+          # --dry-run, and --ref/--head-ref default to CI's own environment.
           appknox autofix \
             --file-id "${{ steps.upload.outputs.file_id }}" \
-            --risk-threshold "${{ inputs.riskThreshold || 'low' }}" \
-            ${{ inputs.analysisId != '' && format('--analysis-id {0}', inputs.analysisId) || '' }} \
             --host "$APPKNOX_API_HOST" \
-            --allow-unverified \
-            ${{ inputs.dryRun == 'false' && '--push-branch' || '--dry-run' }}
+            ${{ inputs.dryRun == 'false' && ' ' || '--dry-run' }}
