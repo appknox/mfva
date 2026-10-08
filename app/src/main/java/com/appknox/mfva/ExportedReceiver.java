@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  * Created by viren on 26/5/17.
@@ -13,33 +14,31 @@ public class ExportedReceiver extends BroadcastReceiver {
     private static final String TAG = "ExportedReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
+        // Validate the intent action
         if (intent == null || intent.getAction() == null) {
-            Log.w(TAG, "Received null intent or intent with null action.");
-            return;
+            return; // Ignore null or malformed intents
         }
 
         String action = intent.getAction();
         switch (action) {
             case Intent.ACTION_BOOT_COMPLETED:
-                Log.i(TAG, "Received BOOT_COMPLETED broadcast.");
-                // Add specific logic for boot completed, if any.
-                // Ensure any data extracted from the intent is validated and sanitized.
+                // Process boot completed event
+                //... ensure any extras are validated and sanitized
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Received intent. Action: " + action);
+                }
                 break;
             case Intent.ACTION_INPUT_METHOD_CHANGED:
-                Log.i(TAG, "Received INPUT_METHOD_CHANGED broadcast.");
-                // Add specific logic for input method changed, if any.
-                // Ensure any data extracted from the intent is validated and sanitized.
+                // Process input method changed event
+                //... ensure any extras are validated and sanitized
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Received intent. Action: " + action);
+                }
                 break;
             default:
-                Log.w(TAG, "Received unexpected action: " + action + ". Ignoring.");
-                // Do not process unexpected actions.
-                break;
+                // Log unexpected action and return
+                return;
         }
-        // Always validate and sanitize any extras if they are used.
-        // For example:
-        // String someExtra = intent.getStringExtra("some_key");
-        // if (someExtra != null) {
-        // // Sanitize someExtra before use
-        // }
+        // Further processing of the intent, ensuring all data is validated
     }
 }

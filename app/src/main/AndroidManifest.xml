@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
+    <uses-permission android:name="android.permission.BIND_INPUT_METHOD" />
 
     <permission
         android:name="com.appknox.mfva.CustomPermission"
@@ -24,11 +25,11 @@
         android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
+            android:label="@string/activity_title_main"
+            android:screenOrientation="portrait"
             android:exported="true"
             android:taskAffinity=""
-            android:launchMode="singleTask"
-            android:label="@string/activity_title_main"
-            android:screenOrientation="portrait">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -39,10 +40,10 @@
             android:name=".RegisterActivity"
             android:label="@string/title_activity_register"
             android:exported="true"
-            android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"
             android:taskAffinity=""
-            android:launchMode="singleTask" />
+            android:launchMode="singleTask"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
 
         <activity
             android:name=".WebViewActivity"
@@ -74,7 +75,8 @@
             android:permission="com.appknox.mfva.CustomPermission" />
         <service
             android:name=".SecureInputMethodService"
-            android:permission="android.permission.BIND_INPUT_METHOD">
+            android:permission="android.permission.BIND_INPUT_METHOD"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.service.inputmethod.InputMethodService" />
             </intent-filter>
@@ -85,7 +87,7 @@
 
         <receiver
             android:name=".ExportedReceiver"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.INPUT_METHOD_CHANGED" />
