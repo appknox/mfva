@@ -2,7 +2,6 @@ package com.appknox.mfva;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.webkit.WebView;
 
@@ -16,7 +15,6 @@ public class WebViewActivity extends SecureBaseActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_webview);
-
         getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_api_requests);

@@ -14,14 +14,9 @@ public class UnprotectedReceiver extends BroadcastReceiver {
     private static final String TAG = "UnprotectedReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Action: " + intent.getAction() + "\n");
-        sb.append("URI: " + intent.toUri(Intent.URI_INTENT_SCHEME).toString() + "\n");
-        String log = sb.toString();
         if (BuildConfig.DEBUG) {
-            String action = intent.getAction();
-            Log.d(TAG, "Received Intent with action: " + action);
+            Log.d(TAG, "Received intent in debug mode.");
         }
-        Toast.makeText(context, log, Toast.LENGTH_LONG).show();
+        Toast.makeText(context, "Received broadcast intent.", Toast.LENGTH_LONG).show();
     }
 }

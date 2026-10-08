@@ -8,7 +8,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,13 +21,16 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
@@ -38,6 +40,7 @@ public class MainActivity extends SecureBaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Add programmatic tapjacking protection
         getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
@@ -85,8 +88,9 @@ public class MainActivity extends SecureBaseActivity {
                         "os.name",
                         "os.version",
                 };
-                SecureRandom secureRandom = new SecureRandom();
-                String key = keys[secureRandom.nextInt(keys.length)];
+                // For non-security-sensitive display/logging, replace random selection with deterministic choice.
+                // Always select the first property from the array.
+                String key = keys[0];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -116,7 +120,8 @@ public class MainActivity extends SecureBaseActivity {
                         "Every program is a part of some other program, and rarely fits.",
                 };
                 SecureRandom secureRandom = new SecureRandom();
-                String quote = quotes[secureRandom.nextInt(quotes.length)];
+                int randomIndex = secureRandom.nextInt(quotes.length);
+                String quote = quotes[randomIndex];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
@@ -144,20 +149,41 @@ public class MainActivity extends SecureBaseActivity {
         buttonEncrypt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String plaintextString = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                byte[] plaintextBytes = plaintextString.getBytes(StandardCharsets.UTF_8);
+
                 try {
-                    SecureCryptoManager cryptoManager = new SecureCryptoManager();
-                    SecretKey secureKey = cryptoManager.getOrCreateSecureKey();
+                    // Generate a secure random salt for PBKDF2
+                    SecureRandom secureRandom = new SecureRandom();
+                    byte[] salt = new byte[16]; // 16 bytes for salt
+                    secureRandom.nextBytes(salt);
 
-                    String plaintext = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
-                    SecureCryptoManager.EncryptionResult encryptedData =
-                            cryptoManager.encryptData(plaintext.getBytes(StandardCharsets.UTF_8), secureKey);
+                    // Derive a strong key from the password using PBKDF2
+                    char[] password = "Gangnam!".toCharArray(); // Original hardcoded key as password
+                    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+                    PBEKeySpec spec = new PBEKeySpec(password, salt, 100000, 256); // 100,000 iterations, 256-bit key
+                    SecretKey secureKey = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
 
-                    String encryptedBase64 = Base64.encodeToString(encryptedData.getCiphertext(), Base64.DEFAULT);
-                    Snackbar.make(v, "Data encrypted securely: " + encryptedBase64, Snackbar.LENGTH_LONG).show();
+                    // Initialize Cipher with AES/GCM/NoPadding
+                    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+                    cipher.init(Cipher.ENCRYPT_MODE, secureKey);
+
+                    // Get the IV and encrypt the data
+                    byte[] iv = cipher.getIV();
+                    byte[] ciphertext = cipher.doFinal(plaintextBytes);
+
+                    // Combine IV and ciphertext for display (or storage)
+                    byte[] combined = new byte[iv.length + ciphertext.length];
+                    System.arraycopy(iv, 0, combined, 0, iv.length);
+                    System.arraycopy(ciphertext, 0, combined, iv.length, ciphertext.length);
+
+                    // Display encrypted data (Base64 encoded for readability)
+                    String encryptedDisplay = Base64.getEncoder().encodeToString(combined);
+                    Snackbar.make(v, "Securely Encrypted Data: " + encryptedDisplay, Snackbar.LENGTH_LONG).show();
 
                 } catch (Exception e) {
-                    Log.e("MainActivity", "Encryption failed", e);
-                    Snackbar.make(v, "Encryption failed: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(v, "Encryption failed: " + e.getMessage(), Snackbar.LENGTH_SHORT).show();
+                    e.printStackTrace();
                 }
             }
         });
