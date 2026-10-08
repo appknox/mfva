@@ -498,10 +498,12 @@ jobs:
           # provider key server-side; the gateway address is derived from
           # --host. --repo, --repo-path and the base ref come from the runner's
           # own environment, so nothing here restates what CI already knows.
-          # feat/autofix-full-support-v2 CLI: --risk-threshold, --analysis-id,
-          # --allow-unverified and --push-branch are gone; it pushes unless
+          # feat/autofix-full-support-v2 CLI: --analysis-id,
+          # --allow-unverified and --push-branch are gone; --risk-threshold is
+          # explicit because cicheck above records critical for this file id; it pushes unless
           # --dry-run, and --ref/--head-ref default to CI's own environment.
           appknox autofix \
             --file-id "${{ steps.upload.outputs.file_id }}" \
+            --risk-threshold "${{ inputs.riskThreshold || 'low' }}" \
             --host "$APPKNOX_API_HOST" \
             ${{ inputs.dryRun == 'false' && ' ' || '--dry-run' }}
