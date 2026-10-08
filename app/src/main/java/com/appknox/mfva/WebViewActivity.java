@@ -10,12 +10,13 @@ import android.webkit.WebView;
  * Created by viren on 23/5/17.
  */
 
-public class WebViewActivity extends AppCompatActivity {
+public class WebViewActivity extends SecureBaseActivity {
     private WebView webView;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_webview);
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_api_requests);
         setSupportActionBar(toolbar);
