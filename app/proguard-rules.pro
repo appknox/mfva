@@ -9,7 +9,7 @@
 
 # Add any project specific keep options here:
 
-# Keep attributes required for reflection and annotations
+# Keep attributes for reflection targets (e.g., Room entities, Gson/Moshi models, Parcelable)
 -keepattributes *Annotation*, EnclosingMethod, InnerClasses
 
 # If your project uses WebView with JS, uncomment the following
@@ -27,9 +27,8 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# Strip Log.d and Log.v entirely from release builds
+# Remove debug logging in release builds
 -assumenosideeffects class android.util.Log {
  public static int v(...);
  public static int d(...);
- public static *** i(...);
 }

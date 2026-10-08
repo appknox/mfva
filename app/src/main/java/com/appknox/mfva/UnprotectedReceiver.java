@@ -16,9 +16,11 @@ public class UnprotectedReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         StringBuilder sb = new StringBuilder();
         sb.append("Action: " + intent.getAction() + "\n");
+        sb.append("URI: " + intent.toUri(Intent.URI_INTENT_SCHEME).toString() + "\n");
         String log = sb.toString();
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, log);
+            String action = intent.getAction();
+            Log.d(TAG, "Received Intent with action: " + action);
         }
         Toast.makeText(context, log, Toast.LENGTH_LONG).show();
     }

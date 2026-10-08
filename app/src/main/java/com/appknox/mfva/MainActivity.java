@@ -5,34 +5,31 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
-import java.nio.charset.StandardCharsets;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
 
 
 public class MainActivity extends SecureBaseActivity {
@@ -148,36 +145,19 @@ public class MainActivity extends SecureBaseActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    SecureCryptoManager cryptoManager = new SecureCryptoManager();
+                    SecretKey secureKey = cryptoManager.getOrCreateSecureKey();
 
-                    // 1. Generate a secure random salt for PBKDF2
-                    SecureRandom secureRandom = new SecureRandom();
-                    byte[] salt = new byte[16]; // 128-bit salt
-                    secureRandom.nextBytes(salt);
+                    String plaintext = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    SecureCryptoManager.EncryptionResult encryptedData =
+                            cryptoManager.encryptData(plaintext.getBytes(StandardCharsets.UTF_8), secureKey);
 
-                    // 2. Derive a strong key using PBKDF2 from the original 'password'
-                    char[] password = "Gangnam!".toCharArray(); // Use the original key string as password
-                    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-                    PBEKeySpec spec = new PBEKeySpec(password, salt, 100000, 256); // 100k iterations, 256-bit key
-                    SecretKey derivedKey = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+                    String encryptedBase64 = Base64.encodeToString(encryptedData.getCiphertext(), Base64.DEFAULT);
+                    Snackbar.make(v, "Data encrypted securely: " + encryptedBase64, Snackbar.LENGTH_LONG).show();
 
-                    // 3. Generate a secure random IV for AES/GCM
-                    byte[] iv = new byte[12]; // 96-bit IV for GCM
-                    secureRandom.nextBytes(iv);
-
-                    // 4. Get AES/GCM/NoPadding cipher instance
-                    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-
-                    // 5. Initialize cipher with derived key and GCMParameterSpec
-                    GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv); // 128-bit authentication tag
-                    cipher.init(Cipher.ENCRYPT_MODE, derivedKey, gcmSpec);
-
-                    // Perform encryption
-                    byte[] encryptedData = cipher.doFinal(quote.getBytes(StandardCharsets.UTF_8));
-
-                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (GeneralSecurityException e) {
-                    Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Log.e("MainActivity", "Encryption failed", e);
+                    Snackbar.make(v, "Encryption failed: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
                 }
             }
         });

@@ -16,19 +16,18 @@
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:usesCleartextTraffic="false"
+        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-        android:usesCleartextTraffic="false">
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:taskAffinity=""
-            android:launchMode="singleTask"
             android:label="@string/activity_title_main"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:taskAffinity=""
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -39,10 +38,10 @@
             android:name=".RegisterActivity"
             android:label="@string/title_activity_register"
             android:exported="false"
-            android:taskAffinity=""
-            android:launchMode="singleTask"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:taskAffinity=""
+            android:launchMode="singleTask" />
 
         <activity
             android:name=".WebViewActivity"
@@ -61,9 +60,7 @@
         <activity
             android:name=".ExportedActivity"
             android:exported="true"
-            android:permission="com.appknox.mfva.CustomPermission"
-            android:taskAffinity=""
-            android:launchMode="singleTask" />
+            android:permission="com.appknox.mfva.CustomPermission" />
 
         <service
             android:name=".ExportedService"
@@ -74,18 +71,6 @@
             android:enabled="true"
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission" />
-
-        <service
-            android:name=".SecureInputMethodService"
-            android:permission="android.permission.BIND_INPUT_METHOD"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.service.inputmethod.InputMethodService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.view.im"
-                android:resource="@xml/input_method_config" />
-        </service>
 
         <receiver
             android:name=".ExportedReceiver"
@@ -113,11 +98,19 @@
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission"
             android:syncable="true">
-            <grant-uri-permission
-                android:path="/"
-                android:pathPattern="*"
-                android:pathPrefix="/" />
         </provider>
+
+        <service
+            android:name=".SecureInputMethodService"
+            android:permission="android.permission.BIND_INPUT_METHOD"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.inputmethod.InputMethodService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/input_method_config" />
+        </service>
 
     </application>
 
