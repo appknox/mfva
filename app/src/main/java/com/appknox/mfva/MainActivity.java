@@ -13,27 +13,35 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.util.Base64;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
+import java.security.spec.KeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends SecureBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
@@ -80,7 +88,9 @@ public class MainActivity extends AppCompatActivity {
                         "os.name",
                         "os.version",
                 };
-                String key = keys[(int) (Math.random() * keys.length)];
+                SecureRandom secureRandom = new SecureRandom();
+                int randomIndex = secureRandom.nextInt(keys.length);
+                String key = keys[randomIndex];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -109,7 +119,9 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                String quote = quotes[(int) (Math.random() * quotes.length)];
+                SecureRandom secureRandom = new SecureRandom();
+                int index = secureRandom.nextInt(quotes.length);
+                String quote = quotes[index];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
@@ -137,18 +149,42 @@ public class MainActivity extends AppCompatActivity {
         buttonEncrypt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String plaintextString = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                byte[] plaintext = plaintextString.getBytes(StandardCharsets.UTF_8);
+
                 try {
-                    String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
+                    // 1. Generate a cryptographically secure random salt
+                    SecureRandom secureRandom = new SecureRandom();
+                    byte[] salt = new byte[16]; // 128-bit salt
+                    secureRandom.nextBytes(salt);
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    // 2. Derive a strong AES key using PBKDF2
+                    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+                    // Use a strong password (e.g., from user input or a secure source)
+                    // For this example, we'll use the original hardcoded key string as the password input
+                    KeySpec spec = new PBEKeySpec("Gangnam!".toCharArray(), salt, 100000, 256); // 100,000 iterations, 256-bit key
+                    SecretKey tmp = factory.generateSecret(spec);
+                    SecretKey secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
 
-                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
-                    Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
+                    // 3. Initialize AES/GCM cipher
+                    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+                    byte[] iv = new byte[12]; // 96-bit IV for GCM
+                    secureRandom.nextBytes(iv);
+                    GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv); // 128-bit authentication tag
+
+                    cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmSpec);
+
+                    // 4. Encrypt the data
+                    byte[] ciphertext = cipher.doFinal(plaintext);
+
+                    // Display a success message or the encrypted data (e.g., Base64 encoded)
+                    String encryptedTextBase64 = Base64.encodeToString(ciphertext, Base64.DEFAULT);
+                    Snackbar.make(v, "Data encrypted securely!", Snackbar.LENGTH_LONG).show();
+
+                } catch (Exception e) {
+                    // Handle cryptographic exceptions securely
+                    Snackbar.make(v, "Encryption failed: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    e.printStackTrace();
                 }
             }
         });
