@@ -14,11 +14,28 @@ public class ExportedReceiver extends BroadcastReceiver {
     private static final String TAG = "ExportedReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Action: " + intent.getAction() + "\n");
-        sb.append("URI: " + intent.toUri(Intent.URI_INTENT_SCHEME).toString() + "\n");
-        String log = sb.toString();
-        Log.d(TAG, log);
-        Toast.makeText(context, log, Toast.LENGTH_LONG).show();
+        if (intent == null || intent.getAction() == null) {
+            Log.w(TAG, "Received null intent or action.");
+            return;
+        }
+
+        String action = intent.getAction();
+        Log.d(TAG, "Received broadcast with action: " + action);
+
+        // Validate expected actions
+        switch (action) {
+            case Intent.ACTION_BOOT_COMPLETED:
+                // Handle boot completed logic
+                Log.i(TAG, "Boot completed action received.");
+                break;
+            case Intent.ACTION_INPUT_METHOD_CHANGED:
+                // Handle input method changed logic
+                Log.i(TAG, "Input method changed action received.");
+                break;
+            default:
+                // Log and ignore unexpected actions
+                Log.w(TAG, "Received unexpected action: " + action);
+                break;
+        }
     }
 }
