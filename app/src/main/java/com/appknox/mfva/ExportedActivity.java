@@ -1,6 +1,5 @@
 package com.appknox.mfva;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -12,7 +11,7 @@ import javax.crypto.NoSuchPaddingException;
 
 import redis.clients.jedis.Jedis;
 
-public class ExportedActivity extends AppCompatActivity {
+public class ExportedActivity extends SecureBaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,9 +22,14 @@ public class ExportedActivity extends AppCompatActivity {
         Jedis jedis = new Jedis("localhost");
 
         try {
-            Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-        } catch (NoSuchAlgorithmException|NoSuchProviderException|NoSuchPaddingException e) {
-            // pass
+            // Use AES/GCM/NoPadding for secure authenticated encryption
+            Cipher.getInstance("AES/GCM/NoPadding");
+            // Note: For proper use, 'cipher' must be initialized with a secure key
+            // and a unique, random IV/nonce for each encryption operation.
+            // Consider using Android Keystore for key management.
+        } catch (NoSuchAlgorithmException|NoSuchPaddingException e) {
+            // Handle cryptographic exceptions appropriately
+            e.printStackTrace();
         }
     }
 }

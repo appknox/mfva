@@ -2,12 +2,11 @@ package com.appknox.mfva;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends SecureBaseActivity {
 
     EditText USER_NAME,USER_PASS;
     String user_name,user_pass;
@@ -17,7 +16,17 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check if this activity is not the root of the task.
+        // If it's not, it means it might have been launched by a malicious task,
+        // so we finish it immediately to prevent hijacking.
+        if (!isTaskRoot()) {
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_register);
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
         USER_NAME = (EditText) findViewById(R.id.editText3);
         USER_PASS = (EditText) findViewById(R.id.editText2);
         REG = (Button) findViewById(R.id.button);
