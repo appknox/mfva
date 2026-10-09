@@ -9,9 +9,9 @@
 
     <permission
         android:name="com.appknox.mfva.CustomPermission"
+        android:protectionLevel="signature"
         android:description="@string/permission_custom"
-        android:label="@string/permission_custom"
-        android:protectionLevel="signature" />
+        android:label="@string/permission_custom" />
 
     <application
         android:allowBackup="false"
@@ -24,11 +24,10 @@
         android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:taskAffinity=""
-            android:launchMode="singleTask"
             android:label="@string/activity_title_main"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:taskAffinity=""
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -61,7 +60,9 @@
         <activity
             android:name=".ExportedActivity"
             android:exported="true"
-            android:permission="com.appknox.mfva.CustomPermission" />
+            android:permission="com.appknox.mfva.CustomPermission"
+            android:taskAffinity=""
+            android:launchMode="singleTask" />
 
         <service
             android:name=".ExportedService"
@@ -72,21 +73,10 @@
             android:enabled="true"
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission" />
-        <service
-            android:name=".SecureInputMethodService"
-            android:permission="android.permission.BIND_INPUT_METHOD"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.service.inputmethod.InputMethodService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.view.im"
-                android:resource="@xml/input_method_config" />
-        </service>
 
         <receiver
             android:name=".ExportedReceiver"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.INPUT_METHOD_CHANGED" />
@@ -94,7 +84,8 @@
         </receiver>
         <receiver
             android:name=".UnprotectedReceiver"
-            android:exported="false">
+            android:exported="true"
+            android:permission="com.appknox.mfva.CustomPermission">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.INPUT_METHOD_CHANGED" />
@@ -109,10 +100,6 @@
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission"
             android:syncable="true">
-            <grant-uri-permission
-                android:path="/"
-                android:pathPattern="*"
-                android:pathPrefix="/" />
         </provider>
 
     </application>

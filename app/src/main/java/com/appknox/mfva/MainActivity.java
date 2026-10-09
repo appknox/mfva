@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
@@ -15,9 +14,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -38,12 +34,6 @@ public class MainActivity extends SecureBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (!isTaskRoot()) {
-            finish();
-            return;
-        }
-
         setContentView(R.layout.activity_main);
 
         getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
@@ -154,20 +144,20 @@ public class MainActivity extends SecureBaseActivity {
             public void onClick(View v) {
                 try {
                     String plaintext = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
-                    String keyAlias = "my_secure_app_key"; // Use a unique alias for your application's key
 
-                    // 1. Generate or load a secure key from Android Keystore
-                    SecretKey secureKey = SecureCryptoUtil.generateOrLoadSecureKey(keyAlias);
+                    // 1. Get or create a secure AES key from Android Keystore
+                    SecretKey secretKey = SecureCryptoManager.getOrCreateSecretKey();
 
                     // 2. Encrypt data using AES/GCM/NoPadding
-                    SecureCryptoUtil.EncryptionResult result = SecureCryptoUtil.encryptData(plaintext.getBytes(StandardCharsets.UTF_8), secureKey);
+                    SecureCryptoManager.EncryptionResult encryptionResult = SecureCryptoManager.encryptData(plaintext.getBytes("UTF-8"), secretKey);
 
-                    // Display the encrypted data (e.g., Base64 encoded for display purposes)
-                    String encryptedBase64 = Base64.encodeToString(result.ciphertext, Base64.DEFAULT);
-                    Snackbar.make(v, "Encrypted: " + encryptedBase64, Snackbar.LENGTH_LONG).show();
+                    // Display the encrypted data (ciphertext + IV) in the Snackbar
+                    String encryptedOutput = "Ciphertext: " + Base64.encodeToString(encryptionResult.ciphertext, Base64.DEFAULT) +
+                            "\nIV: " + Base64.encodeToString(encryptionResult.iv, Base64.DEFAULT);
 
-                } catch (GeneralSecurityException | IOException e) {
-                    Snackbar.make(v, "Encryption Error: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(v, encryptedOutput, Snackbar.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Snackbar.make(v, "Encryption failed: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
                     e.printStackTrace();
                 }
             }

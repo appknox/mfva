@@ -17,19 +17,16 @@ public class RegisterActivity extends SecureBaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Check if this activity is the root of the task.
-        // If not, it means it was launched into an existing task, potentially by a malicious app.
-        // Finish the activity to prevent task hijacking.
+        // Check if this activity is not the root of the task.
+        // If it's not, it means it might have been launched by a malicious task,
+        // so we finish it immediately to prevent hijacking.
         if (!isTaskRoot()) {
             finish();
             return;
         }
 
         setContentView(R.layout.activity_register);
-        
-        View rootView = getWindow().getDecorView().getRootView();
-        rootView.setFilterTouchesWhenObscured(true);
-        
+        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
         USER_NAME = (EditText) findViewById(R.id.editText3);
         USER_PASS = (EditText) findViewById(R.id.editText2);
         REG = (Button) findViewById(R.id.button);

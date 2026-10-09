@@ -18,6 +18,9 @@ public class UnprotectedReceiver extends BroadcastReceiver {
         sb.append("Action: " + intent.getAction() + "\n");
         sb.append("URI: " + intent.toUri(Intent.URI_INTENT_SCHEME).toString() + "\n");
         String log = sb.toString();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, log);
+        }
         Toast.makeText(context, log, Toast.LENGTH_LONG).show();
     }
 }

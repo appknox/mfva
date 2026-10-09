@@ -22,15 +22,14 @@ public class ExportedActivity extends SecureBaseActivity {
         Jedis jedis = new Jedis("localhost");
 
         try {
-            // Instantiate a secure cipher for AES in GCM mode with no padding.
-            // This is a placeholder; actual encryption/decryption should use a dedicated manager.
-            Cipher secureCipher = Cipher.getInstance("AES/GCM/NoPadding");
-            // Further steps would involve generating a secure key (e.g., from Android Keystore),
-            // generating a unique nonce/IV for each encryption, and using the cipher for authenticated encryption.
-            // Refer to the 'SecureCryptoManager' example in the knowledge base for a complete implementation.
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-            Log.e("ExportedActivity", "Error initializing secure cipher: " + e.getMessage());
-            // Handle the exception appropriately, e.g., by preventing sensitive operations.
+            // Use AES/GCM/NoPadding for secure authenticated encryption
+            Cipher.getInstance("AES/GCM/NoPadding");
+            // Note: For proper use, 'cipher' must be initialized with a secure key
+            // and a unique, random IV/nonce for each encryption operation.
+            // Consider using Android Keystore for key management.
+        } catch (NoSuchAlgorithmException|NoSuchPaddingException e) {
+            // Handle cryptographic exceptions appropriately
+            e.printStackTrace();
         }
     }
 }
