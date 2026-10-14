@@ -23,10 +23,15 @@ import java.security.NoSuchProviderException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -80,7 +85,8 @@ public class MainActivity extends AppCompatActivity {
                         "os.name",
                         "os.version",
                 };
-                String key = keys[(int) (Math.random() * keys.length)];
+                SecureRandom secureRandom = new SecureRandom();
+                String key = keys[secureRandom.nextInt(keys.length)];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -109,7 +115,8 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                String quote = quotes[(int) (Math.random() * quotes.length)];
+                SecureRandom secureRandom = new SecureRandom();
+                String quote = quotes[secureRandom.nextInt(quotes.length)];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
@@ -140,14 +147,20 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
-                    c.doFinal(quote.getBytes());
+                    KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+                    keyGen.init(256);
+                    SecretKey aesSecretKey = keyGen.generateKey();
+
+                    byte[] iv = new byte[12];
+                    new SecureRandom().nextBytes(iv);
+                    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+                    GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+                    cipher.init(Cipher.ENCRYPT_MODE, aesSecretKey, spec);
+                    byte[] encryptedBytes = cipher.doFinal(quote.getBytes(StandardCharsets.UTF_8));
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
+                } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException |
+                        IllegalBlockSizeException | InvalidKeyException | InvalidAlgorithmParameterException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
             }
