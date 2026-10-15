@@ -30,6 +30,10 @@ on:
         description: "Generate PDF report"
         type: boolean
         default: false
+      exploit_likelihood_threshold:
+        description: "Use exploit threshold as the type."
+        required: false
+        default: ""
 
 jobs:
   build:
@@ -61,6 +65,7 @@ jobs:
           sarif: ${{ github.event.inputs.sarif }}
           trigger_knoxiq: ${{ github.event.inputs.trigger_knoxiq }}
           generate_pdf_report: ${{ github.event.inputs.generate_pdf_report }}
+          exploit_likelihood_threshold: ${{ github.event.inputs.exploit_likelihood_threshold }}
       - name: Upload Appknox PDF report
         if: always() && steps.appknox-scan.outputs.pdf_report_path != ''
         uses: actions/upload-artifact@v4
