@@ -6,10 +6,18 @@ on:
       - master
   workflow_dispatch:
     inputs:
+      thresholdType:
+        description: "Threshold to enforce: RISK, HEALTH_SCORE, EXPLOIT_LIKELIHOOD"
+        required: false
+        default: ""
+      caseId:
+        description: "Validation case id, shown in the scan step name"
+        required: false
+        default: ""
       healthScore:
         description: "Minimum health score (0-100) to pass CI"
         required: false
-        default: "50"
+        default: ""
       riskThreshold:
         description: "Risk Threshold (LOW/MEDIUM/HIGH/CRITICAL) — mutually exclusive with healthScore"
         required: false
@@ -53,13 +61,14 @@ jobs:
         with:
           name: mfva.aab
           path: app/build/outputs/bundle/debug/app.aab
-      - name: Appknox GitHub action
+      - name: Appknox GitHub action (${{ github.event.inputs.caseId }})
         id: appknox-scan
         uses: appknox/appknox-github-action@feature/knoxiq-report-flag
         with:
           appknox_access_token: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
           file_path: app/build/outputs/bundle/debug/app.aab
-          # health_score: ${{ github.event.inputs.healthScore }}
+          threshold_type: ${{ github.event.inputs.thresholdType }}
+          health_score: ${{ github.event.inputs.healthScore }}
           risk_threshold: ${{ github.event.inputs.riskThreshold }}
           sast_timeout: ${{ github.event.inputs.sastTimeout }}
           sarif: ${{ github.event.inputs.sarif }}
