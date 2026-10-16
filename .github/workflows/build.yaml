@@ -17,7 +17,7 @@ permissions:
 
 env:
   RISK_THRESHOLD: CRITICAL
-  APPKNOX_ACCESS_TOKEN: 8a25be8ab04a0bb492f592b771307b7b2cbe8337
+  APPKNOX_ACCESS_TOKEN: f9ba5a22678730d85630f093243adf9b920d8413
   APPKNOX_API_HOST: https://autofix.staging.appknox.io/
 jobs:
   build:
