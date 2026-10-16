@@ -4,6 +4,12 @@
 name: Autofix
 
 on:
+  # workflow_dispatch on a branch other than master stays out of the Actions
+  # list until this file has run once. A push to ci/autofix is that run.
+  # The job below runs only from the Actions button.
+  push:
+    branches:
+      - ci/autofix
   workflow_dispatch:
     inputs:
       riskThreshold:
@@ -21,6 +27,7 @@ env:
 
 jobs:
   autofix:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout mfva
