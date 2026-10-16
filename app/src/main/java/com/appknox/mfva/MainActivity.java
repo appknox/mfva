@@ -14,13 +14,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -31,13 +29,15 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+
 
 public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        findViewById(android.R.id.content).getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
@@ -85,8 +85,8 @@ public class MainActivity extends AppCompatActivity {
                         "os.version",
                 };
                 SecureRandom secureRandom = new SecureRandom();
-                int index = secureRandom.nextInt(keys.length);
-                String key = keys[index];
+                int randomIndex = secureRandom.nextInt(keys.length);
+                String key = keys[randomIndex];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    byte[] plaintext = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden".getBytes(StandardCharsets.UTF_8);
+                    String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
                     KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
                     keyGenerator.init(256);
@@ -155,9 +155,9 @@ public class MainActivity extends AppCompatActivity {
                     Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
                     cipher.init(Cipher.ENCRYPT_MODE, secretKey);
                     byte[] iv = cipher.getIV();
-                    byte[] ciphertext = cipher.doFinal(plaintext);
+                    byte[] ciphertext = cipher.doFinal(quote.getBytes(StandardCharsets.UTF_8));
 
-                    Snackbar.make(v, "Encryption successful", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
                 } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException |
                         IllegalBlockSizeException | InvalidKeyException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();

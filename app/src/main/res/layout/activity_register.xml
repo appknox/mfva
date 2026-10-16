@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:filterTouchesWhenObscured="true"
     tools:context="com.appknox.mfva.RegisterActivity"
     android:orientation="vertical"
     android:layout_gravity="center"
     android:gravity="center"
     android:background="@android:color/holo_red_light"
     android:layout_marginRight="10dp"
-    android:layout_marginLeft="10dp">
+    android:layout_marginLeft="10dp"
+    android:filterTouchesWhenObscured="true">
 
     <EditText
         android:id="@+id/editText2"
@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="text"
-        android:imeOptions="flagNoExtractUi|flagNoFullscreen"
+
         android:hint="user name"
         android:padding="10dp"
 
@@ -30,8 +30,7 @@
         android:id="@+id/editText3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:imeOptions="flagNoExtractUi|flagNoFullscreen"
+        android:inputType="numberPassword"
         tools:layout_editor_absoluteX="84dp"
         tools:layout_editor_absoluteY="107dp"
         android:hint="password"

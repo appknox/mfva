@@ -15,6 +15,10 @@ public class WebViewActivity extends AppCompatActivity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_SECURE,
+            android.view.WindowManager.LayoutParams.FLAG_SECURE
+        );
         setContentView(R.layout.activity_webview);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_api_requests);
@@ -23,6 +27,6 @@ public class WebViewActivity extends AppCompatActivity {
 
         webView = (WebView) findViewById(R.id.activity_webview);
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadUrl("https://example.com");
+        webView.loadUrl("http://example.com");
     }
 }
