@@ -24,10 +24,11 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# Preserve necessary framework annotations and metadata for R8 obfuscation
 -keepattributes *Annotation*, EnclosingMethod, InnerClasses
 
 # Strip debug logging from release builds
 -assumenosideeffects class android.util.Log {
-    public static *** d(...);
-    public static *** v(...);
+ public static *** d(...);
+ public static *** v(...);
 }

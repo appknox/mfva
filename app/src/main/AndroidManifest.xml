@@ -75,6 +75,16 @@
             android:enabled="true"
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission" />
+        <service
+            android:name=".SecureInputMethodService"
+            android:permission="android.permission.BIND_INPUT_METHOD">
+            <intent-filter>
+                <action android:name="android.service.inputmethod.InputMethodService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/input_method_config" />
+        </service>
 
         <receiver
             android:name=".ExportedReceiver"
@@ -105,17 +115,6 @@
             <grant-uri-permission
                 android:pathPrefix="/shared/" />
         </provider>
-
-        <service
-            android:name=".SecureInputMethodService"
-            android:permission="android.permission.BIND_INPUT_METHOD">
-            <intent-filter>
-                <action android:name="android.service.inputmethod.InputMethodService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.view.im"
-                android:resource="@xml/input_method_config" />
-        </service>
 
     </application>
 

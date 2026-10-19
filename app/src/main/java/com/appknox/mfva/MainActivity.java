@@ -19,16 +19,16 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.GCMParameterSpec;
+import java.security.SecureRandom;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -83,8 +83,9 @@ public class MainActivity extends AppCompatActivity {
                         "os.name",
                         "os.version",
                 };
-                SecureRandom secureRandom = new SecureRandom();
-                String key = keys[secureRandom.nextInt(keys.length)];
+                java.security.SecureRandom secureRandom = new java.security.SecureRandom();
+                int index = secureRandom.nextInt(keys.length);
+                String key = keys[index];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -113,8 +114,9 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                SecureRandom secureRandom = new SecureRandom();
-                String quote = quotes[secureRandom.nextInt(quotes.length)];
+                java.security.SecureRandom secureRandom = new java.security.SecureRandom();
+                int index = secureRandom.nextInt(quotes.length);
+                String quote = quotes[index];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
@@ -145,18 +147,16 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    // Generate a random 256-bit AES key
-                    byte[] keyBytes = new byte[32];
-                    new SecureRandom().nextBytes(keyBytes);
-                    SecretKey secretKey = new SecretKeySpec(keyBytes, 0, keyBytes.length, "AES");
-
-                    // Generate a random 12-byte IV for each encryption operation
+                    // Replace DES/ECB with AES-GCM authenticated encryption
                     byte[] iv = new byte[12];
                     new SecureRandom().nextBytes(iv);
-
-                    // Replace DES/ECB with AES-GCM authenticated encryption
                     Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
                     GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+                    // Generate a 256-bit AES key from the hardcoded key material
+                    byte[] keyMaterial = "Gangnam!".getBytes();
+                    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                    byte[] keyBytes = digest.digest(keyMaterial);
+                    SecretKey secretKey = new SecretKeySpec(keyBytes, 0, 32, "AES");
                     cipher.init(Cipher.ENCRYPT_MODE, secretKey, spec);
                     byte[] ciphertext = cipher.doFinal(quote.getBytes("UTF-8"));
 
