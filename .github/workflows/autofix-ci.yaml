@@ -1,11 +1,16 @@
 # Autofix only. Does not build or upload.
 # Run it on the same branch the scan was uploaded from (push to master
 # records branch "master"). Autofix picks the latest file on that branch.
+#
+# This file is autofix-ci.yaml, not autofix.yaml. The old path was committed
+# to master and then reverted, so GitHub marked that workflow deleted and
+# will not list it again unless the file returns to master. A new path on
+# ci/autofix registers as its own workflow and leaves master unchanged.
 name: Autofix
 
 on:
-  # workflow_dispatch on a branch other than master stays out of the Actions
-  # list until this file has run once. A push to ci/autofix is that run.
+  # A workflow that is not on the default branch stays out of the Actions
+  # list until it has run once. A push to ci/autofix is that run.
   # The job below runs only from the Actions button.
   push:
     branches:
