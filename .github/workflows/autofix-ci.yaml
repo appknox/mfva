@@ -20,7 +20,7 @@ on:
       riskThreshold:
         description: "Minimum risk (low, medium, high, critical)"
         required: false
-        default: critical
+        default: low
 
 permissions:
   contents: write
