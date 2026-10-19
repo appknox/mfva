@@ -28,7 +28,7 @@ permissions:
 
 env:
   APPKNOX_API_HOST: https://autofix.staging.appknox.io/
-  APPKNOX_ACCESS_TOKEN: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
+  APPKNOX_ACCESS_TOKEN: 3e52a208c84a05f3fb569f3d26e780641351d0cd
 
 jobs:
   autofix:
