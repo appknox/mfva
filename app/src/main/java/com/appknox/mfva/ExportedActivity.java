@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -21,8 +22,8 @@ public class ExportedActivity extends AppCompatActivity {
 
 
         try {
-            Cipher.getInstance("AES/GCM/NoPadding");
-        } catch (NoSuchAlgorithmException|NoSuchPaddingException e) {
+            Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
+        } catch (NoSuchAlgorithmException|NoSuchProviderException|NoSuchPaddingException e) {
             // pass
         }
     }
