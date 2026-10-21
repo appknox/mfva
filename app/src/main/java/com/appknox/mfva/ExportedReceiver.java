@@ -14,9 +14,7 @@ public class ExportedReceiver extends BroadcastReceiver {
     private static final String TAG = "ExportedReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent == null) {
-            return;
-        }
+        if (intent == null || intent.getAction() == null) return;
         String action = intent.getAction();
         if (!Intent.ACTION_BOOT_COMPLETED.equals(action) &&
             !Intent.ACTION_INPUT_METHOD_CHANGED.equals(action)) {
