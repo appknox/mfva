@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:filterTouchesWhenObscured="true"
     tools:context="com.appknox.mfva.RegisterActivity"
     android:orientation="vertical"
     android:layout_gravity="center"
     android:gravity="center"
     android:background="@android:color/holo_red_light"
     android:layout_marginRight="10dp"
-    android:layout_marginLeft="10dp"
-    android:filterTouchesWhenObscured="true">
+    android:layout_marginLeft="10dp">
 
     <EditText
         android:id="@+id/editText2"

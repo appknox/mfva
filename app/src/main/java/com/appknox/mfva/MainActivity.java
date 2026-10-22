@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -20,20 +19,20 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
+import java.nio.charset.StandardCharsets;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.KeyGenerator;
 
-import java.nio.charset.StandardCharsets;
 
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends SecureBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -147,18 +146,20 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-                    keyGenerator.init(256);
-                    SecretKey secretKey = keyGenerator.generateKey();
-
+                    KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+                    keyGen.init(256);
+                    SecretKey aesSecretKey = keyGen.generateKey();
+                    
+                    byte[] iv = new byte[12];
+                    new SecureRandom().nextBytes(iv);
                     Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-                    cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-                    byte[] iv = cipher.getIV();
+                    GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+                    cipher.init(Cipher.ENCRYPT_MODE, aesSecretKey, spec);
                     byte[] ciphertext = cipher.doFinal(quote.getBytes(StandardCharsets.UTF_8));
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
                 } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException |
-                        IllegalBlockSizeException | InvalidKeyException e) {
+                        IllegalBlockSizeException | InvalidKeyException | InvalidAlgorithmParameterException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }
             }

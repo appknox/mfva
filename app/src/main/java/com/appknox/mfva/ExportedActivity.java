@@ -1,6 +1,5 @@
 package com.appknox.mfva;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -12,7 +11,7 @@ import javax.crypto.NoSuchPaddingException;
 
 
 
-public class ExportedActivity extends AppCompatActivity {
+public class ExportedActivity extends SecureBaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

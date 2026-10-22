@@ -26,8 +26,8 @@
             android:name=".MainActivity"
             android:label="@string/activity_title_main"
             android:screenOrientation="portrait"
-            android:taskAffinity=""
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:taskAffinity="">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -39,7 +39,9 @@
             android:label="@string/title_activity_register"
             android:exported="false"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:taskAffinity=""
+            android:launchMode="singleTask" />
 
         <activity
             android:name=".WebViewActivity"
@@ -72,17 +74,6 @@
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission" />
 
-        <service
-            android:name=".SecureInputMethodService"
-            android:permission="android.permission.BIND_INPUT_METHOD">
-            <intent-filter>
-                <action android:name="android.service.inputmethod.InputMethodService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.view.im"
-                android:resource="@xml/input_method_config" />
-        </service>
-
         <receiver
             android:name=".ExportedReceiver"
             android:exported="false">
@@ -108,8 +99,7 @@
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission"
             android:syncable="true">
-            <grant-uri-permission
-                android:pathPrefix="/sync/" />
+            <grant-uri-permission android:pathPrefix="/shared/" />
         </provider>
 
     </application>
