@@ -13,23 +13,23 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
-import java.nio.charset.StandardCharsets;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.KeyGenerator;
 
 
 public class MainActivity extends SecureBaseActivity {
@@ -37,7 +37,6 @@ public class MainActivity extends SecureBaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getWindow().getDecorView().getRootView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
@@ -148,13 +147,11 @@ public class MainActivity extends SecureBaseActivity {
 
                     KeyGenerator keyGen = KeyGenerator.getInstance("AES");
                     keyGen.init(256);
-                    SecretKey aesSecretKey = keyGen.generateKey();
-                    
-                    byte[] iv = new byte[12];
-                    new SecureRandom().nextBytes(iv);
+                    SecretKey secretKey = keyGen.generateKey();
+
                     Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-                    GCMParameterSpec spec = new GCMParameterSpec(128, iv);
-                    cipher.init(Cipher.ENCRYPT_MODE, aesSecretKey, spec);
+                    cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+                    byte[] iv = cipher.getIV();
                     byte[] ciphertext = cipher.doFinal(quote.getBytes(StandardCharsets.UTF_8));
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();

@@ -9,6 +9,8 @@
 
 # Add any project specific keep options here:
 
+-keepattributes *Annotation*, EnclosingMethod, InnerClasses
+
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:
@@ -23,5 +25,3 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
-
--keepattributes *Annotation*, EnclosingMethod, InnerClasses
