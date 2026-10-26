@@ -75,7 +75,7 @@ jobs:
           set -euo pipefail
           APPKNOX=./bin/appknox
           FILE_ID="${{ steps.appknox_scan.outputs.file_id }}"
-          $APPKNOX autofix --file-id "$FILE_ID"
+          $APPKNOX knoxfixer --file-id "$FILE_ID"
       - name: Fail if cicheck found issues
         if: steps.appknox_scan.outcome == 'failure'
         run: exit 1
