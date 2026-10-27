@@ -21,6 +21,9 @@ public class RegisterActivity extends AppCompatActivity {
         USER_NAME = (EditText) findViewById(R.id.editText3);
         USER_PASS = (EditText) findViewById(R.id.editText2);
         REG = (Button) findViewById(R.id.button);
+        USER_NAME.setFilterTouchesWhenObscured(true);
+        USER_PASS.setFilterTouchesWhenObscured(true);
+        REG.setFilterTouchesWhenObscured(true);
         REG.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
