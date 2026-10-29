@@ -12,28 +12,31 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
 
 public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_main);
+        getWindow().getDecorView().setFilterTouchesWhenObscured(true);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
@@ -80,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                         "os.name",
                         "os.version",
                 };
-                String key = keys[(int) (Math.random() * keys.length)];
+                String key = keys[new SecureRandom().nextInt(keys.length)];
                 editor.putString(key, System.getProperty(key));
                 editor.commit();
 
@@ -109,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
                         "Every program has two purposes ― one for which it was written and another for which it wasn't.",
                         "Every program is a part of some other program, and rarely fits.",
                 };
-                String quote = quotes[(int) (Math.random() * quotes.length)];
+                String quote = quotes[new SecureRandom().nextInt(quotes.length)];
                 Log.d("YOLO", quote);
                 Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
             }
@@ -140,13 +143,16 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String quote = "Even if you're not doing anything wrong, you are being watched and recorded. - Edward Snowden";
 
-                    SecretKey keyspec = new SecretKeySpec("Gangnam!".getBytes(), "DES");
-                    Cipher c = Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-                    c.init(Cipher.ENCRYPT_MODE, keyspec);
+                    KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+                    keyGen.init(256);
+                    SecretKey key = keyGen.generateKey();
+                    Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+                    c.init(Cipher.ENCRYPT_MODE, key);
+                    byte[] iv = c.getIV();
                     c.doFinal(quote.getBytes());
 
                     Snackbar.make(v, quote, Snackbar.LENGTH_SHORT).show();
-                } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException | BadPaddingException |
+                } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException |
                         IllegalBlockSizeException | InvalidKeyException e) {
                     Snackbar.make(v, e.toString(), Snackbar.LENGTH_SHORT).show();
                 }

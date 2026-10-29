@@ -10,9 +10,20 @@ android {
         versionName "1.1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        release {
+            // Janus (CVE-2017-13156): do not sign with the APK Signature Scheme v1 (JAR)
+            // so that the package relies only on v2/v3 signing.
+            v1SigningEnabled false
+            v2SigningEnabled true
+            v3SigningEnabled true
+        }
+    }
     buildTypes {
         release {
-            minifyEnabled false
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -30,6 +41,5 @@ dependencies {
     api 'com.android.support.constraint:constraint-layout:1.0.2'
     api 'com.android.support:design:26.1.0'
     api 'com.squareup.okhttp3:okhttp:3.8.0'
-    api 'redis.clients:jedis:2.9.0'
     testImplementation 'junit:junit:4.12'
 }
