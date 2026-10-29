@@ -63,7 +63,7 @@ jobs:
           path: app/build/outputs/bundle/debug/app.aab
       - name: Appknox GitHub action (${{ github.event.inputs.caseId }})
         id: appknox-scan
-        uses: appknox/appknox-github-action@feature/knoxiq-report-flag
+        uses: appknox/appknox-github-action@main
         with:
           appknox_access_token: ${{ secrets.APPKNOX_ACCESS_TOKEN }}
           file_path: app/build/outputs/bundle/debug/app.aab
