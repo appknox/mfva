@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:context="com.appknox.mfva.RegisterActivity"
     android:orientation="vertical"
+    android:filterTouchesWhenObscured="true"
     android:layout_gravity="center"
     android:gravity="center"
     android:background="@android:color/holo_red_light"
