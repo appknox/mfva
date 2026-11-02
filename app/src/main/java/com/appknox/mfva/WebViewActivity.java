@@ -10,7 +10,7 @@ import android.webkit.WebView;
  * Created by viren on 23/5/17.
  */
 
-public class WebViewActivity extends AppCompatActivity {
+public class WebViewActivity extends SecureBaseActivity {
     private WebView webView;
 
     public void onCreate(Bundle savedInstanceState) {

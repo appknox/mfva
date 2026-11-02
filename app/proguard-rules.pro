@@ -23,3 +23,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Retain necessary Android framework and reflection attributes
+-keepattributes *Annotation*, EnclosingMethod, InnerClasses
