@@ -1,0 +1,52 @@
+name: Autofix
+on:
+  workflow_dispatch:
+    inputs:
+      fileId:
+        description: "Appknox file ID to run autofix on"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  APPKNOX_ACCESS_TOKEN: 12113443ec9b5c141adc459f9afec11830d709d4
+  APPKNOX_API_HOST: https://autofix.staging.appknox.io/
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate file ID
+        env:
+          FILE_ID: ${{ inputs.fileId }}
+        run: |
+          if ! [[ "$FILE_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::fileId must be a numeric Appknox file ID, got: '$FILE_ID'"
+            exit 1
+          fi
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - name: Checkout appknox-go
+        uses: actions/checkout@v4
+        with:
+          repository: appknox/appknox-go
+          ref: feature/knoxfixer
+          path: appknox-go
+      - name: Build appknox CLI
+        working-directory: appknox-go
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/bin"
+          go build -o "$GITHUB_WORKSPACE/bin/appknox" .
+      - name: Run Appknox autofix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FILE_ID: ${{ inputs.fileId }}
+        run: |
+          set -euo pipefail
+          ./bin/appknox autofix --file-id "$FILE_ID"
