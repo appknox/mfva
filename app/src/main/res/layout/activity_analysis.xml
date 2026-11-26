@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.appknox.mfva.AnalysisActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_analysis"
+        android:background="@color/colorPrimary"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:elevation="4dp"
+        android:theme="@style/AppTheme"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        app:popupTheme="@style/Theme.AppCompat.NoActionBar" />
+
+    <TextView
+        android:id="@+id/textview_analysis"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar_analysis"
+        android:padding="16dp"
+        android:typeface="monospace"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/button_start_analysis"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="@string/button_start_analysis"/>
+</RelativeLayout>

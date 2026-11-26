@@ -4,6 +4,7 @@
     <string name="activity_title_main">MFVA</string>
     <string name="activity_title_api_requests">API Requests</string>
     <string name="activity_title_webview">WebView</string>
+    <string name="activity_title_analysis">Analysis</string>
     <string name="title_activity_register">Register</string>
 
     <string name="action_about">About</string>
@@ -16,6 +17,8 @@
     <string name="button_webview">Open WebView</string>
     <string name="button_api_requests">API requests</string>
     <string name="button_start_api_requests">Start API requests</string>
+    <string name="button_analysis">Open Analysis</string>
+    <string name="button_start_analysis">Run analysis</string>
     <string name="button_calculate_checksum">Calculate checksum with MD5</string>
     <string name="button_encrypt">Encrypt with DES/ECB</string>
 

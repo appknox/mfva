@@ -55,6 +55,11 @@
                 android:value=".MainActivity" />
         </activity>
         <activity
+            android:name=".AnalysisActivity"
+            android:label="@string/activity_title_analysis"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".ExportedActivity"
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission" />
