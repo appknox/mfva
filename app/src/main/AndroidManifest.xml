@@ -1,30 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.appknox.mfva">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- To auto-complete the email text field in the login form with the user's emails -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <permission
         android:name="com.appknox.mfva.CustomPermission"
+        android:protectionLevel="signature"
         android:description="@string/permission_custom"
         android:label="@string/permission_custom" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+        android:usesCleartextTraffic="false"
+        tools:replace="android:allowBackup,android:networkSecurityConfig,android:usesCleartextTraffic">
         <activity
             android:name=".MainActivity"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
             android:label="@string/activity_title_main"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -35,8 +38,10 @@
         </activity>
         <activity
             android:name=".RegisterActivity"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
             android:label="@string/title_activity_register"
-            android:exported="true"
+            android:exported="false"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
 
@@ -61,13 +66,14 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".ExportedActivity"
+            android:taskAffinity=""
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission" />
 
         <service
             android:name=".ExportedService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
         <service
             android:name=".UnprotectedService"
             android:enabled="true"
@@ -76,7 +82,7 @@
 
         <receiver
             android:name=".ExportedReceiver"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.INPUT_METHOD_CHANGED" />
@@ -100,10 +106,6 @@
             android:exported="true"
             android:permission="com.appknox.mfva.CustomPermission"
             android:syncable="true">
-            <grant-uri-permission
-                android:path="/"
-                android:pathPattern="*"
-                android:pathPrefix="/" />
         </provider>
 
     </application>
