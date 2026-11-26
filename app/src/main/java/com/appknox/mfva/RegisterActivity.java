@@ -17,6 +17,10 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                android.view.WindowManager.LayoutParams.FLAG_SECURE
+        );
         setContentView(R.layout.activity_register);
         USER_NAME = (EditText) findViewById(R.id.editText3);
         USER_PASS = (EditText) findViewById(R.id.editText2);

@@ -23,8 +23,8 @@ public class ExportedActivity extends AppCompatActivity {
         RedisCacheClient.connect();
 
         try {
-            Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
-        } catch (NoSuchAlgorithmException|NoSuchProviderException|NoSuchPaddingException e) {
+            Cipher.getInstance("AES/GCM/NoPadding");
+        } catch (NoSuchAlgorithmException|NoSuchPaddingException e) {
             // pass
         }
     }
