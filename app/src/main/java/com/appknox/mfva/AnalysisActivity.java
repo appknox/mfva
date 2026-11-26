@@ -11,7 +11,7 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-public class AnalysisActivity extends AppCompatActivity {
+public class AnalysisActivity extends SecureBaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
