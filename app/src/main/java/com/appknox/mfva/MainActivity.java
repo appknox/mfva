@@ -66,6 +66,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button buttonAnalysis = (Button) findViewById(R.id.button_analysis);
+        buttonAnalysis.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, AnalysisActivity.class);
+                startActivity(intent);
+            }
+        });
+
         Button buttonSharedPref = (Button) findViewById(R.id.button_shared_pref);
         buttonSharedPref.setOnClickListener(new View.OnClickListener() {
             @Override

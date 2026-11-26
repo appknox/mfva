@@ -30,6 +30,12 @@
         android:text="@string/button_webview"/>
 
     <Button
+        android:id="@+id/button_analysis"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/button_analysis"/>
+
+    <Button
         android:id="@+id/button_shared_pref"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
