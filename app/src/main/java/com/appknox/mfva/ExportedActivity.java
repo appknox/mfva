@@ -10,7 +10,7 @@ import java.security.NoSuchProviderException;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 
-import redis.clients.jedis.Jedis;
+import com.thirdpartysdk.cache.RedisCacheClient;
 
 public class ExportedActivity extends AppCompatActivity {
 
@@ -19,8 +19,8 @@ public class ExportedActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_exported);
 
-        Log.d("redis", "Initialising jedis...");
-        Jedis jedis = new Jedis("localhost");
+        Log.d("redis", "Initialising cache client...");
+        RedisCacheClient.connect();
 
         try {
             Cipher.getInstance("DES/ECB/ZeroBytePadding", "BC");
