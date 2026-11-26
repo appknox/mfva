@@ -8,8 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.thirdpartysdk.cache.RedisCacheClient;
 
 public class AnalysisActivity extends AppCompatActivity {
 
@@ -28,18 +27,9 @@ public class AnalysisActivity extends AppCompatActivity {
         buttonStartAnalysis.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                JsonObject report = new JsonObject();
-                report.addProperty("scanner", "sherlock");
-                report.addProperty("target", "com.appknox.mfva");
-                report.addProperty("status", "analyzed");
-
-                Gson gson = new Gson();
-                String serializedReport = gson.toJson(report);
-
-                JsonObject parsedReport = gson.fromJson(serializedReport, JsonObject.class);
-                textViewResult.setText(parsedReport.toString());
-
-                Snackbar.make(v, "Analysis report serialized with Gson", Snackbar.LENGTH_SHORT).show();
+                RedisCacheClient.connect();
+                textViewResult.setText("Bundled cache client connected via com.thirdpartysdk.cache");
+                Snackbar.make(v, "Analysis complete", Snackbar.LENGTH_SHORT).show();
             }
         });
     }
