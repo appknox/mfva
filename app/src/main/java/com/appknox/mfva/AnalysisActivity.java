@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import com.thirdpartysdk.cache.RedisCacheClient;
 
-public class AnalysisActivity extends AppCompatActivity {
+public class AnalysisActivity extends SecureBaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
